@@ -1,5 +1,3 @@
-#coding:UTF-8
-
 """ Cooling Schedules """
 
 import numpy as np

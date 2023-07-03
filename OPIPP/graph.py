@@ -124,8 +124,8 @@ class PointNetwork(nx.Graph):
             return nn_distance
         return self.__get_features(feauture_func=nn_func, indices=indices, effective_filter=effective_filter)
 
-    def get_surround_points(self):
-        """ Gets boundary points """
+    def get_boundary_indices(self):
+        """ Gets indices of boundary points """
         in_surrounds = np.arange(self.points.shape[0])[1-self.get_effective_filter()]
         return in_surrounds
 

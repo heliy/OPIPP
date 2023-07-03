@@ -1,6 +1,40 @@
 import numpy as np
 
 class Distribution:
+    """ 
+    Probability distribution of feature values
+        
+    Parameters
+    ----------
+    max_value: float
+        The maximum value for bins in histogram.
+
+    n_bin: int
+        The number of bins in histogram.
+
+    target_probs: list or np.ndarray
+        The value of temperature at initalization.
+
+    min_value: float, optional(default=0.)
+        The minimum value for bins in histogram.
+
+    Methods
+    -------
+    get_prob()
+        Gets the probability of a given value.
+
+    get_hist()
+        Gets the histrogram of probablities of given values.
+
+    KL()
+        Calculates the KL divergency between probabllities of given values and the target.
+    
+    sample_values()
+        Generates random values following the target probabilities.
+    
+    sample_ri()
+        Calculate the Regularity Index of values generated randomly.
+    """
     def __init__(self, max_value: float, n_bin: int, target_probs: list, min_value: float=0.):
         assert len(target_probs) == n_bin+1
         assert max_value > min_value

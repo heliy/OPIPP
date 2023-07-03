@@ -1,5 +1,3 @@
-""" Cooling Schedules """
-
 import numpy as np
 
 MIN_T = 1e-4
@@ -30,6 +28,31 @@ class Schedule:
             return self.t > self.min_t and self.i_update < self.max_update
 
 class AdaptiveSchedule(Schedule):
+    """ 
+    the adaptive cooling schedule for the SA optimization
+        
+    Parameters
+    ----------
+    alpha: float, optional(default=0.95)
+        The parameter controls of adaptation.
+
+    init_t: float, optional(default=0.5)
+        The value of temperature at initalization.
+
+    min_t: float, optional(default=1e-4)
+        The value of temperature for termination.   
+
+    Methods
+    -------
+    init()
+        Initalization.
+
+    next()
+        Adds a new value.
+
+    has_next()
+        True if not terminate.
+    """
     def __init__(self, alpha: float=0.95, init_t: float=0.5, min_t: float=MIN_T):
         self.alpha = alpha
         Schedule.__init__(self, init_t=init_t, min_t=min_t)

@@ -3,6 +3,15 @@ from __future__ import annotations
 import numpy as np
 
 class Scope:
+    """ 
+    The rectangle area
+        
+    Parameters
+    ----------
+    min_x, max_x, min_y, max_y: float
+        Axis of the rectangle.
+
+    """
     def __init__(self, min_x: float, max_x: float, min_y: float, max_y: float) -> None:
         self.min_x = min_x
         self.max_x = max_x

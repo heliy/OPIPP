@@ -11,18 +11,18 @@ from .utils import get_poly_area
 from .scope import Scope
 
 class PointNetwork(nx.Graph):
-    def __init__(self, points, scope: Scope, **attr):
-        """ 
-        Graph of points in a mosaic.
+    """ 
+    Graph of points in a mosaic.
         
-        Parameters
-        ----------
-        points: np.ndarray or list
-            locations of cells.
+    Parameters
+    ----------
+    points: np.ndarray or list
+        locations of cells.
 
-        scope: Scope
-            the area of the mosaic.
-        """
+    scope: Scope
+        the area of the mosaic.
+    """
+    def __init__(self, points, scope: Scope, **attr):
         super().__init__(**attr)
         self.points = np.array(points)
         self.scope = scope

@@ -8,3 +8,6 @@ def get_poly_centeroid(arr):
     sum_x = np.sum(arr[:, 0])
     sum_y = np.sum(arr[:, 1])
     return sum_x/length, sum_y/length
+
+def get_distances(loc, pointsArray):
+    return np.sqrt((pointsArray[:, 0]-loc[0])**2+(pointsArray[:, 1]-loc[1])**2)

@@ -22,6 +22,7 @@ class Mosaic(nx.Graph):
         the area of the mosaic.
     """
     def __init__(self, points: np.ndarray, scope: Scope, **attr):
+        super().__init__(**attr)
         self.points = np.array(points)
         assert len(self.points.shape) == 2
         self.scope = scope
@@ -32,7 +33,7 @@ class Mosaic(nx.Graph):
         effective_filter = self.get_effective_filter()
         for index, is_effective in enumerate(effective_filter):
             if not is_effective:
-                reflect_points = self.scope.get_reflect_points(self.points[index])
+                reflect_points = self.scope.get_reflect_points(*self.points[index])
                 appended_points.extend(reflect_points)
         appended_points = np.array(appended_points)
         appended_points = appended_points[self.scope.filter(appended_points, not_in=True)]
@@ -141,7 +142,7 @@ class Mosaic(nx.Graph):
         """ Gets its NN neighbor and NN distance of a given cell """
         min_distance = self.scope.get_area()
         min_neighbor = -1
-        for neighbor in self.find_neighbors():
+        for neighbor in self.find_neighbors(node):
             distance = self.__edge_length(neighbor, node)
             if distance < min_distance:
                 min_distance = distance

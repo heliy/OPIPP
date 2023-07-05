@@ -1,8 +1,11 @@
 from typing import Callable
+from time import time
 
 import numpy as np
 import matplotlib.pyplot as plt
 
+from .utils import get_distances
+from .cooling import AdaptiveSchedule
 from .scope import Scope
 from .distribution import Distribution
 from .mosaic import Mosaic
@@ -62,7 +65,7 @@ class Pattern:
     def set_density(self, density: float):
         self.density = density
 
-    def estimate_density(self):
+    def estimate_density(self) -> float:
         if len(self.nature_mosaics) == 0:
             return -1
         total_area = 0.
@@ -70,7 +73,7 @@ class Pattern:
         for mosaic in self.nature_mosaics:
             total_num += mosaic.get_points_n()
             total_area += mosaic.scope.get_area()
-        return total_num / total_area
+        return float(total_num / total_area)
     
     def set_feature(self, feature_label: str, distribution: Distribution, feature_method: Callable=None):
         self.distributions[feature_label] = distribution
@@ -83,12 +86,24 @@ class Pattern:
         hist = self.distributions[feature_label].get_hist(values)
         self.distributions[feature_label].set_target(hist)
 
-    def get_usabel_features(self) -> list:
+    def get_useable_features(self) -> list:
         features = []
         for key in self.distributions:
             if self.distributions[key].has_target() and self.methods[key] is not None:
                 features.append(key)
         return features 
+    
+    def __get_feature_values(self, mosaics: list, feature_label: str):
+        method = self.methods[feature_label]
+        values = np.concatenate(list(method(mosaic) for mosaic in mosaics))
+        return values
+    
+    def evaluate(self, mosaics: list, features: list) -> float:
+        loss = 0
+        for feature in features:
+            values = self.__get_feature_values(mosaics=mosaics, feature_label=feature)
+            loss += self.distributions[feature].KL(values)
+        return loss
 
     ########################################
     #
@@ -101,6 +116,152 @@ class Pattern:
     # Mosaic Generation Methods
     #
     ########################################
+
+    def estimate_interaction_parameters(self):
+        pass
+
+    def get_interaction_func(self, parameters: list=None) -> Callable:
+        if parameters is None or len(parameters) != 3:
+            parameters = self.estimate_interaction_parameters()
+        theta, phi, alpha = tuple(parameters)
+
+        def interaction_func(distances):
+            probs = np.copy(distances) - theta
+            probs[probs < 0] = 0
+            probs = 1-np.exp(-((probs/phi)**alpha))
+            return probs
+        return interaction_func
+
+    def new_mosaic(self, scope: Scope, n: int=None) -> Mosaic:
+        if n is None or n <= 0:
+            if self.density is None:
+                if len(self.nature_mosaics) == 0:
+                    raise Exception("")
+                self.set_density(self.estimate_density())
+            n = int(self.density*scope.get_area())
+        points = scope.get_random_loc(n)
+        return Mosaic(points=points, scope=scope)
+
+    def simulate(self, mosaic: Mosaic, interaction_func: Callable=None, 
+                 features: list=[], schedule: AdaptiveSchedule=None, 
+                 max_step: int=None, update_ratio: float=None,
+                 save_prefix: str=None, save_step: int=1, verbose: bool=True):
+        if interaction_func is None:
+            interaction_func = self.get_interaction_func()
+        useable_features = self.get_useable_features()
+        if features is None:
+            features = useable_features
+        else:
+            features = list(set(features) & set(useable_features))
+            print("Using features: %s"%str(features))
+
+        def save(i_step: int, mosaic: Mosaic):
+            if save_prefix is None:
+                return
+            if i_step%save_step != 0:
+                return
+            np.savetxt("%s_%d.points"%(save_prefix, i_step), mosaic.points)
+
+        begin = time()
+        losses = [self.evaluate([mosaic], features=features)]
+        if verbose:
+            print()
+        if schedule is None:
+            # Original PIPP
+            if max_step is None:
+                max_step = 20
+            if update_ratio is None:
+                update_ratio = 1.0  
+            for i_step in range(max_step):
+                mosaic = self.__routine(mosaic, interaction_func=interaction_func, 
+                                    update_ratio=update_ratio, non_neighbor=False, 
+                                    verbose=verbose)
+                loss = self.evaluate([mosaic], features=features)
+                if verbose:
+                    print("Step #%d: loss = %f"%(i_step, loss))
+                losses.append(loss)
+                save(i_step, mosaic=mosaic)
+        else:
+            # Optimization-based PIPP
+            if update_ratio is None:
+                update_ratio = 0.01
+            schedule.init()
+            best_points = np.copy(mosaic.points)
+            current_loss = losses[0]
+            best_loss = losses[0]
+            i_step = 0
+            while schedule.has_next():
+                if max_step is not None and i_step >= max_step:
+                    break
+                if best_loss <= 1e-5:
+                    # loss is small enough
+                    break
+                new_mosaic = self.__routine(mosaic, interaction_func=interaction_func, 
+                                    update_ratio=update_ratio, non_neighbor=True, 
+                                    verbose=verbose)
+                loss = self.evaluate([new_mosaic], features=features)
+                if loss < best_loss:
+                    best_loss = current_loss
+                    best_points = np.copy(new_mosaic.points)
+                is_update = True
+                accept_t = schedule.next(loss)
+                if loss > current_loss:
+                    accept_p = np.exp(-(loss-current_loss)/accept_t)
+                    if np.random.rand() > accept_p:
+                        is_update = False
+                if verbose:
+                    if loss > current_loss:
+                        print("Step #%d: loss=%f, t=%f, delta=%f, accept_p=%f, is_update=%s"%(i_step, loss, accept_t, (loss-current_loss), accept_p, str(is_update)))
+                    else:
+                        print("Step #%d: loss=%f, t=%f, delta=%f, is_update=%s"%(i_step, loss, accept_t, (loss-current_loss), str(is_update)))
+                if is_update:
+                    current_loss = loss
+                    mosaic = new_mosaic
+                losses.append(loss)
+                save(i_step, mosaic=mosaic)
+                i_step += 1
+            mosaic = Mosaic(points=best_points, scope=mosaic.scope)
+        if verbose:
+            end = time()
+            print("Simulation End, use %f seconds"%(begin-end))
+        if save_prefix is not None:
+            np.savetxt("%s.losses"%save_prefix, losses)
+        return mosaic, losses
+        
+    def __routine(self, mosaic: Mosaic, interaction_func: Callable, 
+                  update_ratio: float=None, non_neighbor: bool=False, 
+                  verbose: bool=True) -> Mosaic:
+        relocateds = []
+        banned = set()
+        cell_mask = np.ones(mosaic.get_points_n()).astype(bool)
+        for i_cell in range(mosaic.get_points_n()):
+            if non_neighbor and i_cell in banned:
+                continue
+            if np.random.rand() >= update_ratio:
+                continue
+            if non_neighbor:
+                banned.update(mosaic.find_neighbors(i_cell))
+
+            cell_mask[:] = True
+            cell_mask[i_cell] = False
+            others = mosaic.points[cell_mask]
+            relocate_loc = None
+            while relocate_loc is None:
+                new_loc = mosaic.scope.get_random_loc(1)[0]
+                distances2others = get_distances(new_loc, pointsArray=others)
+                prob = np.prod(interaction_func(distances2others))
+                if np.random.rand() < prob:
+                    relocate_loc = new_loc
+
+            points = mosaic.points
+            points[i_cell] = relocate_loc
+            mosaic = Mosaic(points=points, scope=mosaic.scope)
+            relocateds.append(i_cell)
+            if non_neighbor:
+                banned.update(mosaic.find_neighbors(i_cell))
+        if verbose:
+            print("Relocated %d cells: %s"%(len(relocateds), str(relocateds)))
+        return mosaic
 
 
 

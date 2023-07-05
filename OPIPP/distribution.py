@@ -72,8 +72,8 @@ class Distribution:
         hist = np.concatenate((hist, [len(values)-sum(hist)])).astype(float)
         return hist
 
-    def KL(self, distances: np.ndarray) -> float:
-        hist = self.get_hist(distances)
+    def KL(self, values: np.ndarray) -> float:
+        hist = self.get_hist(values)
         probs = hist/hist.sum()
         kl = np.sum([pk * np.log(pk / qk) for pk, qk in zip(probs, self.target_probs) if qk > 0 and pk > 0])
         return kl

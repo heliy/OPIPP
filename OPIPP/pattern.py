@@ -79,12 +79,17 @@ class Pattern:
         self.distributions[feature_label] = distribution
         self.methods[feature_label] = feature_method
 
-    def estimate_feature(self, feature_label: str):
+    def estimate_feature(self, feature_label: str, nature: bool=True) -> np.ndarray:
         assert feature_label in self.methods and self.methods[feature_label] is not None
-        assert len(self.nature_mosaics) > 0
-        values = np.concatenate(list(self.methods[feature_label](mosaic) for mosaic in self.nature_mosaics)).flatten()
-        hist = self.distributions[feature_label].get_hist(values)
-        self.distributions[feature_label].set_target(hist)
+        if nature:
+            assert len(self.nature_mosaics) > 0
+            values = np.concatenate(list(self.methods[feature_label](mosaic) for mosaic in self.nature_mosaics)).flatten()
+        else:
+            assert len(self.simulated_mosaics) > 0
+            values = np.concatenate(list(self.methods[feature_label](mosaic) for mosaic in self.simulated_mosaics)).flatten()
+        hist = self.distributions[feature_label].get_hist(values).astype(float)
+        hist /= hist.sum()
+        return hist
 
     def get_useable_features(self) -> list:
         features = []
@@ -110,6 +115,30 @@ class Pattern:
     # Visualization Methods
     #
     ########################################
+
+    def draw_feature_hist(self, feature_label: str, nature_color: str="skyblue", 
+                          target_color: str="gray", simulated_color: str="red"):
+        distribution = self.distributions[feature_label]
+        centers = distribution.get_value_centers()
+        width = centers[1]-centers[0]
+        ax = plt.subplot()
+        if nature_color is not None and len(self.nature_mosaics) > 0:
+            nature_probs = self.estimate_feature(feature_label, nature=True)
+            plt.bar(centers, nature_probs, color=nature_color, label="Nature", align="center", alpha=0.4, width=width)
+        if target_color is not None and distribution.has_target():
+            plt.bar(centers, distribution.target_probs, color=target_color, label="Target", align="center", alpha=0.4, width=width)
+        if simulated_color is not None and len(self.simulated_mosaics) > 0:
+            simulated_probs = self.estimate_feature(feature_label, nature=False)
+            plt.bar(centers, simulated_probs, color=simulated_color, label="Simulated", align="center", alpha=0.4, width=width)            
+        plt.legend()
+        ax.set_ylabel("Frequency")
+        ax.set_title("Feature: %s"%feature_label)
+        plt.show()
+
+    def draw_feature_boxes(self, feature_label: str, nature_color: str="skyblue", 
+                          target_color: str="gray", simulated_color: str="red"):
+        pass
+        
 
     ########################################
     #

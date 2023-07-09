@@ -34,3 +34,24 @@ density = pattern.estimate_density()
 pattern.set_density(density=density)
 pattern.estimate_feature("nn")
 pattern.estimate_feature("vd")
+
+########################################
+#
+# Build the Pattern by probabilities
+#
+########################################
+
+nn_distribution.set_target(np.array([0.        , 0.        , 0.        , 0.0016756 , 0.00670241,
+       0.02010724, 0.04356568, 0.08713137, 0.11394102, 0.17258713,
+       0.16253351, 0.16253351, 0.1152815 , 0.06635389, 0.0325067 ,
+       0.01005362, 0.00268097, 0.00134048, 0.00067024, 0.00033512, 0]))
+vd_distribution.set_target(np.array([0.        , 0.        , 0.00608906, 0.0617784 , 0.17183275,
+       0.27966751, 0.27633813, 0.13262011, 0.05992875, 0.0117453 ,
+       0.        , 0.        , 0.        , 0.        , 0.        ,
+       0.        , 0.        , 0.        , 0.        , 0.        , 0.        ]))
+# pattern.set_density(87/90000.) # direct set the density
+
+if __name__ == "__main__":
+    pattern.draw_feature_hist("nn")
+    pattern.draw_feature_hist("vd")
+

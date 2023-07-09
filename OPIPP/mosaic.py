@@ -217,6 +217,7 @@ class Mosaic(nx.Graph):
         plt.scatter(pos[N:, 0], pos[N:, 1], color='r')
         ax.set_xlim([self.scope.min_x, self.scope.max_x])
         ax.set_ylim([self.scope.min_y, self.scope.max_y])
+        ax.tick_params(left=True, bottom=True, labelleft=True, labelbottom=True)
         plt.show()
 
     def draw_centeroids_centered(self):
@@ -231,6 +232,7 @@ class Mosaic(nx.Graph):
         lim = np.abs(pos).max()*1.5
         plt.xlim([-lim, lim])
         plt.ylim([-lim, lim])
+        ax.tick_params(left=True, bottom=True, labelleft=True, labelbottom=True)
         plt.show()
 
     def draw_points(self, highlights=None, grid=1, color='r', size=5):
@@ -245,6 +247,7 @@ class Mosaic(nx.Graph):
         ax.set_yticks(np.linspace(self.scope.min_y, self.scope.max_y, grid+1))
         ax.set_xlim([self.scope.min_x, self.scope.max_x])
         ax.set_ylim([self.scope.min_y, self.scope.max_y])
+        ax.tick_params(left=True, bottom=True, labelleft=True, labelbottom=True)
         plt.grid()
         plt.show()
 
@@ -259,14 +262,15 @@ class Mosaic(nx.Graph):
         ax.set_yticks(np.linspace(self.scope.min_y, self.scope.max_y, grid+1))
         ax.set_xlim([self.scope.min_x, self.scope.max_x])
         ax.set_ylim([self.scope.min_y, self.scope.max_y])
+        ax.tick_params(left=True, bottom=True, labelleft=True, labelbottom=True)
         for edge in self.net.edges:
             ax.plot([self.points[edge[0], 0], self.points[edge[1], 0]], [self.points[edge[0], 1], self.points[edge[1], 1]], color='gray', lw=0.5)
         plt.grid()
         plt.show()
 
     def draw_nn_graph(self, edge_color='k', node_color='r', node_size=5):
-        p_indices = list(self.iter_effective_point_indices())
-        nn_graph = self.net.get_nn_graph(nodes=p_indices)
+        p_indices = list(self.iter_effective_indices())
+        nn_graph = self.get_nn_graph(nodes=p_indices)
         ax = plt.subplot()
         ax.set_aspect('equal')
         nx.draw_networkx(nn_graph, pos=self.points, edge_color=edge_color, node_size=0, with_labels=False)
@@ -274,6 +278,7 @@ class Mosaic(nx.Graph):
         plt.scatter(self.points[p_indices][:, 0], self.points[p_indices][:, 1], color=node_color, s=node_size, alpha=1.0)
         ax.set_xlim([self.scope.min_x, self.scope.max_x])
         ax.set_ylim([self.scope.min_y, self.scope.max_y])
+        ax.tick_params(left=True, bottom=True, labelleft=True, labelbottom=True)
         plt.show()
 
     def draw_vorarea_graph(self, line_width=0.5, node_color='r', node_size=10):
@@ -291,8 +296,13 @@ class Mosaic(nx.Graph):
 
         plt.xlim([self.scope.min_x, self.scope.max_x])
         plt.ylim([self.scope.min_y, self.scope.max_y])
+        ax.tick_params(left=True, bottom=True, labelleft=True, labelbottom=True)
         plt.show()
     
     def draw_raw(self, edge_color='r', node_color='b', node_size=5):
+        ax = plt.subplot()
         nx.draw_networkx(self, pos=self.points, edge_color=edge_color, node_color=node_color, node_size=node_size)
+        ax.set_xlim([self.scope.min_x, self.scope.max_x])
+        ax.set_ylim([self.scope.min_y, self.scope.max_y])
+        ax.tick_params(left=True, bottom=True, labelleft=True, labelbottom=True)
         plt.show()

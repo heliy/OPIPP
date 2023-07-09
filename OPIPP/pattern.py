@@ -172,7 +172,7 @@ class Pattern:
         return Mosaic(points=points, scope=scope)
 
     def simulate(self, mosaic: Mosaic, interaction_func: Callable=None, 
-                 features: list=[], schedule: AdaptiveSchedule=None, 
+                 features: list=None, schedule: AdaptiveSchedule=None, 
                  max_step: int=None, update_ratio: float=None,
                  save_prefix: str=None, save_step: int=1, verbose: bool=True):
         if interaction_func is None:
@@ -203,8 +203,7 @@ class Pattern:
                 update_ratio = 1.0  
             for i_step in range(max_step):
                 mosaic = self.__routine(mosaic, interaction_func=interaction_func, 
-                                    update_ratio=update_ratio, non_neighbor=False, 
-                                    verbose=verbose)
+                                    update_ratio=update_ratio, non_neighbor=False)
                 loss = self.evaluate([mosaic], features=features)
                 if verbose:
                     print("Step #%d: loss = %f"%(i_step, loss))
@@ -225,9 +224,9 @@ class Pattern:
                 if best_loss <= 1e-5:
                     # loss is small enough
                     break
+                bak_points = np.copy(mosaic.points)
                 new_mosaic = self.__routine(mosaic, interaction_func=interaction_func, 
-                                    update_ratio=update_ratio, non_neighbor=True, 
-                                    verbose=verbose)
+                                    update_ratio=update_ratio, non_neighbor=True)
                 loss = self.evaluate([new_mosaic], features=features)
                 if loss < best_loss:
                     best_loss = current_loss
@@ -246,24 +245,26 @@ class Pattern:
                 if is_update:
                     current_loss = loss
                     mosaic = new_mosaic
+                else:
+                    mosaic = Mosaic(bak_points, scope=mosaic.scope)
                 losses.append(loss)
                 save(i_step, mosaic=mosaic)
                 i_step += 1
             mosaic = Mosaic(points=best_points, scope=mosaic.scope)
         if verbose:
             end = time()
-            print("Simulation End, use %f seconds"%(begin-end))
+            print("Simulation End, use %f seconds"%(end-begin))
         if save_prefix is not None:
             np.savetxt("%s.losses"%save_prefix, losses)
         return mosaic, losses
         
     def __routine(self, mosaic: Mosaic, interaction_func: Callable, 
-                  update_ratio: float=None, non_neighbor: bool=False, 
-                  verbose: bool=True) -> Mosaic:
+                  update_ratio: float=1.0, non_neighbor: bool=False) -> Mosaic:
         relocateds = []
         banned = set()
-        cell_mask = np.ones(mosaic.get_points_n()).astype(bool)
-        for i_cell in range(mosaic.get_points_n()):
+        N = mosaic.get_points_n()
+        cell_mask = np.ones(N).astype(bool)
+        for i_cell in np.random.choice(N, N, replace=False):
             if non_neighbor and i_cell in banned:
                 continue
             if np.random.rand() >= update_ratio:
@@ -288,8 +289,6 @@ class Pattern:
             relocateds.append(i_cell)
             if non_neighbor:
                 banned.update(mosaic.find_neighbors(i_cell))
-        if verbose:
-            print("Relocated %d cells: %s"%(len(relocateds), str(relocateds)))
         return mosaic
 
 

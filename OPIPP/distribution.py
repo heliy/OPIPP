@@ -56,7 +56,9 @@ class Distribution:
     
     def set_target(self, target_probs: list) -> None:
         assert len(target_probs) == self.n_bin+1
-        self.target_probs = target_probs
+        self.target_probs = np.copy(target_probs)
+        self.target_probs[self.target_probs<=0] = 1e-5 
+        self.target_probs /= self.target_probs.sum()
 
     def has_target(self) -> bool:
         return self.target_probs is not None

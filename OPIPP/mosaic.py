@@ -241,7 +241,7 @@ class Mosaic(nx.Graph):
         ax.set_aspect('equal')
         plt.scatter(self.points[:, 0], self.points[:, 1], color=color, s=size, alpha=0.3)
         if highlights is None:
-            highlights = list(self.iter_effective_point_indices())
+            highlights = list(self.iter_effective_indices())
         plt.scatter(self.points[highlights][:, 0], self.points[highlights][:, 1], color=color, s=size, alpha=1.0)
         ax.set_xticks(np.linspace(self.scope.min_x, self.scope.max_x, grid+1))
         ax.set_yticks(np.linspace(self.scope.min_y, self.scope.max_y, grid+1))
@@ -256,14 +256,14 @@ class Mosaic(nx.Graph):
         ax = plt.subplot()
         ax.set_aspect('equal')
         plt.scatter(self.points[:, 0], self.points[:, 1], color=color, s=size, alpha=0.3)
-        p_indices = list(self.iter_effective_point_indices())
+        p_indices = list(self.iter_effective_indices())
         plt.scatter(self.points[p_indices][:, 0], self.points[p_indices][:, 1], color=color, s=size, alpha=1.0)
         ax.set_xticks(np.linspace(self.scope.min_x, self.scope.max_x, grid+1))
         ax.set_yticks(np.linspace(self.scope.min_y, self.scope.max_y, grid+1))
         ax.set_xlim([self.scope.min_x, self.scope.max_x])
         ax.set_ylim([self.scope.min_y, self.scope.max_y])
         ax.tick_params(left=True, bottom=True, labelleft=True, labelbottom=True)
-        for edge in self.net.edges:
+        for edge in self.edges:
             ax.plot([self.points[edge[0], 0], self.points[edge[1], 0]], [self.points[edge[0], 1], self.points[edge[1], 1]], color='gray', lw=0.5)
         plt.grid()
         plt.show()
@@ -284,13 +284,13 @@ class Mosaic(nx.Graph):
     def draw_vorarea_graph(self, line_width=0.5, node_color='r', node_size=10):
         ax = plt.subplot()
         ax.set_aspect('equal')
-        vor = self.net.vor
+        vor = self.vor
         for region in vor.regions:
-            polygon = [self.net.vor.vertices[i] for i in region]
+            polygon = [self.vor.vertices[i] for i in region]
             ax.fill(*zip(*polygon), color='gray', alpha=0.5)
         voronoi_plot_2d(vor, ax=ax, show_points=False, line_width=line_width)
 
-        p_indices = list(self.iter_effective_point_indices())
+        p_indices = list(self.iter_effective_indices())
         ax.scatter(self.points[:, 0], self.points[:, 1], color=node_color, s=node_size, alpha=0.3)
         ax.scatter(self.points[p_indices][:, 0], self.points[p_indices][:, 1], color=node_color, s=node_size, alpha=1.0)
 

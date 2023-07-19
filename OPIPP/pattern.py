@@ -4,7 +4,7 @@ from time import time
 import numpy as np
 import matplotlib.pyplot as plt
 
-from .utils import get_distances
+from .utils import get_distances, estimate_interaction
 from .cooling import AdaptiveSchedule
 from .scope import Scope
 from .distribution import Distribution
@@ -146,13 +146,14 @@ class Pattern:
     #
     ########################################
 
-    def get_interaction_func(self, parameters: list=None) -> Callable:
-        if parameters is None or len(parameters) != 3:
-            if len(self.nature_mosaics) == 0:
-                raise Exception()
-            else:
-                parameters = self.nature_mosaics[0].estimate_interaction_parameters()
-        theta, phi, alpha = tuple(parameters)
+    def get_interaction_func(self, values: list, axis: np.ndarray=None, p0: list=[20, 1], delta: float=3., draw: bool=False) -> Callable:
+        if axis is None:
+            # estimated parameters from values
+            theta, phi, alpha = tuple(values)
+        else:
+            # fit the interaction parameters with given values and axis
+            assert p0 is not None
+            theta, phi, alpha = tuple(estimate_interaction(gammas=values, axis=axis, p0=p0, delta=delta, draw=draw))
 
         def interaction_func(distances):
             probs = np.copy(distances) - theta

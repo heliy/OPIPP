@@ -188,9 +188,6 @@ class Mosaic(nx.Graph):
         distances = [self.__edge_length(u, v) for u, v in edge_iter]
         return np.array(distances)
         
-    def estimate_interaction_parameters(self):
-        pass
-
     ########################################
     #
     # Visualization methods

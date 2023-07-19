@@ -27,7 +27,7 @@ pattern.set_feature("vd", vd_distribution, get_vorareas)
 #
 ########################################
 
-nature_points = np.loadtxt("examples/nature/Keeley19/F8-1-points.txt")
+nature_points = np.loadtxt("examples/nature/HC/F8-1-points.txt")
 nature_mosaic = Mosaic(points=nature_points, scope=scope)
 pattern.add_nature_mosaic(nature_mosaic)
 density = pattern.estimate_density()
@@ -55,13 +55,25 @@ h_func = pattern.get_interaction_func([7.5, 32.1206741, 2.64876305])
 
 
 if __name__ == "__main__":
+    
+    ########################################
+    #
+    # Load simulated mosaics
+    #
+    ########################################
+    from glob import glob
+    points_files = glob("examples/simulated/HC/*.points")
+    pattern.load_from_files(points_files, scope=scope, is_nature=False)
+    pattern.draw_feature_hist("nn")
+    pattern.draw_feature_hist("vd")
+
     ########################################
     #
     # Generate a new mosaic
     #
     ########################################
     mosaic = pattern.new_mosaic(scope=scope)
-    mosaic, losses = pattern.simulate(mosaic, h_func, None, AdaptiveSchedule(), save_prefix="examples/simulated/HC")
+    mosaic, losses = pattern.simulate(mosaic, h_func, None, AdaptiveSchedule(), save_prefix="examples/simulated/HC/Sample", save_step=1000)
     pattern.add_simulated_mosaic(mosaic)
     pattern.draw_feature_hist("nn")
     pattern.draw_feature_hist("vd")

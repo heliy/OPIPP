@@ -41,20 +41,27 @@ class Pattern:
 
     def load_from_files(self, fnames: list, scope: Scope, is_nature: bool=True):
         for fname in fnames:
-            if fname[-4:] == ".txt":
-                points = np.loadtxt(fname)
-            elif fname[-4:] == ".npy":
+            if fname[-4:] == ".npy":
                 points = np.load(fname)
             else:
-                raise Exception("Unknown file type: %s"%fname)
+                try:
+                    points = np.loadtxt(fname)
+                except:
+                    raise Exception("Unknown file type: %s"%fname)
             mosaic = Mosaic(points=points, scope=scope)
             if is_nature:
                 self.add_nature_mosaic(mosaic)
             else:
                 self.add_simulated_mosaic(mosaic)
 
-    def dump_to_files(self, prefix: str):
-        pass
+    def dump_to_files(self, prefix: str, ext: str="points", is_nature: bool=True, split: bool=False):
+        if is_nature:
+            mosaics = self.nature_mosaics
+        else:
+            mosaics = self.simulated_mosaics
+        for i, mosaic in enumerate(mosaics):
+            fname = "%s-%d.%s"%(prefix, i, ext)
+            mosaic.save(fname, split=split)
 
     ########################################
     #

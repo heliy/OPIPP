@@ -180,7 +180,7 @@ class Pattern:
         return Mosaic(points=points, scope=scope)
 
     def simulate(self, mosaic: Mosaic, interaction_func: Callable=None, 
-                 features: list=None, schedule: AdaptiveSchedule=None, 
+                 features: list=None, schedule: AdaptiveSchedule=AdaptiveSchedule(), 
                  max_step: int=None, update_ratio: float=None,
                  save_prefix: str=None, save_step: int=1, verbose: bool=True):
         if interaction_func is None:

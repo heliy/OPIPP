@@ -3,7 +3,6 @@ Mosaic for Horizontal Cells from (Keeley et al., 2019) Figure 8-1.
 """
 
 import numpy as np
-import matplotlib.pyplot as plt
 
 from OPIPP import *
 
@@ -38,7 +37,7 @@ pattern.estimate_feature("vd")
 
 ########################################
 #
-# Build the Pattern by probabilities
+# OR Build the Pattern by probabilities
 #
 ########################################
 
@@ -52,18 +51,17 @@ vd_distribution.set_target(np.array([0.        , 0.        , 0.00608906, 0.06177
        0.        , 0.        , 0.        , 0.        , 0.        , 0.        ]))
 # pattern.set_density(87/90000.) # direct set the density
 
-########################################
-#
-# Generate a new mosaic
-#
-########################################
-
-mosaic = pattern.new_mosaic(scope=scope)
-func = pattern.get_interaction_func([7.5, 32.1206741, 2.64876305])
+h_func = pattern.get_interaction_func([7.5, 32.1206741, 2.64876305])
 
 
 if __name__ == "__main__":
-    mosaic, losses = pattern.simulate(mosaic, func, None, AdaptiveSchedule(), save_prefix="examples/simulated/HC")
+    ########################################
+    #
+    # Generate a new mosaic
+    #
+    ########################################
+    mosaic = pattern.new_mosaic(scope=scope)
+    mosaic, losses = pattern.simulate(mosaic, h_func, None, AdaptiveSchedule(), save_prefix="examples/simulated/HC")
     pattern.add_simulated_mosaic(mosaic)
     pattern.draw_feature_hist("nn")
     pattern.draw_feature_hist("vd")

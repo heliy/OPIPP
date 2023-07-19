@@ -68,10 +68,10 @@ class Mosaic(nx.Graph):
         if split:
             cons = fname.split(".")
             pre_name = ".".join(cons[:-1])
-            np.savetxt(self.points[:, 0], "%s-x.%s"%(pre_name, cons[-1]), fmt="%f")
-            np.savetxt(self.points[:, 1], "%s-y.%s"%(pre_name, cons[-1]), fmt="%f")
+            np.savetxt("%s-x.%s"%(pre_name, cons[-1]), self.points[:, 0], fmt="%f")
+            np.savetxt("%s-y.%s"%(pre_name, cons[-1]), self.points[:, 1], fmt="%f")
         else:
-            np.savetxt(self.points, fname, fmt="%f")
+            np.savetxt(fname, self.points, fmt="%f")
 
     ########################################
     #

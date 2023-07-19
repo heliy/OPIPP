@@ -146,12 +146,12 @@ class Pattern:
     #
     ########################################
 
-    def estimate_interaction_parameters(self):
-        pass
-
     def get_interaction_func(self, parameters: list=None) -> Callable:
         if parameters is None or len(parameters) != 3:
-            parameters = self.estimate_interaction_parameters()
+            if len(self.nature_mosaics) == 0:
+                raise Exception()
+            else:
+                parameters = self.nature_mosaics[0].estimate_interaction_parameters()
         theta, phi, alpha = tuple(parameters)
 
         def interaction_func(distances):

@@ -62,19 +62,27 @@ if __name__ == "__main__":
     #
     ########################################
     from glob import glob
-    points_files = glob("examples/simulated/HC/*.points")
+    # load simulated mosaics by the O-PIPP method
+    points_files = glob("examples/simulated/HC/W1_*.points")
     pattern.load_from_files(points_files, scope=scope, is_nature=False)
-    pattern.draw_feature_hist("nn")
-    pattern.draw_feature_hist("vd")
+    pattern.draw_feature_hist("nn", simulated_tag="O-PIPP")
+    pattern.draw_feature_hist("vd", simulated_tag="O-PIPP")
+
+    # load simulated mosaics by the PIPP method
+    points_files = glob("examples/simulated/HC/PIPP_*.points")
+    pattern.load_from_files(points_files, scope=scope, is_nature=False, simulated_tag="PIPP")
+    pattern.draw_feature_hist("nn", simulated_tag="PIPP")
+    pattern.draw_feature_hist("vd", simulated_tag="PIPP")
+    
 
     ########################################
     #
     # Generate a new mosaic
     #
     ########################################
-    mosaic = pattern.new_mosaic(scope=scope)
-    mosaic, losses = pattern.simulate(mosaic, h_func, None, AdaptiveSchedule(), save_prefix="examples/simulated/HC/Sample", save_step=1000)
-    pattern.add_simulated_mosaic(mosaic)
-    pattern.draw_feature_hist("nn")
-    pattern.draw_feature_hist("vd")
+#     mosaic = pattern.new_mosaic(scope=scope)
+#     mosaic, losses = pattern.simulate(mosaic, h_func, None, AdaptiveSchedule(), save_prefix="examples/simulated/HC/Sample", save_step=1000)
+#     pattern.add_simulated_mosaic(mosaic)
+#     pattern.draw_feature_hist("nn")
+#     pattern.draw_feature_hist("vd")
 

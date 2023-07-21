@@ -22,10 +22,18 @@ rank = comm.Get_rank()
 # reseed to avoid the unique random generator 
 np.random.seed(seed=rank*seed)
 
+# use the O-PIPP method to generate new mosaics
 new_mosaic = HC.new_mosaic(scope=scope)
 new_mosaic, losses = HC.simulate(new_mosaic, h_func, features=features, verbose=verbose)
 new_mosaic.save("%s_%d.points"%(save_prefix, rank), split=False)
 np.savetxt("%s_%d.losses"%(save_prefix, rank), losses)
+
+# # or use the PIPP method to generate new mosaics
+# save_prefix = "examples/simulated/HC/PIPP"
+# new_mosaic = HC.new_mosaic(scope=scope)
+# new_mosaic, losses = HC.simulate(new_mosaic, h_func, features=features, verbose=verbose, schedule=None, max_step=20)
+# new_mosaic.save("%s_%d.points"%(save_prefix, rank), split=False)
+# np.savetxt("%s_%d.losses"%(save_prefix, rank), losses)
 
 
 

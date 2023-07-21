@@ -62,9 +62,10 @@ if __name__ == "__main__":
     #
     ########################################
     from glob import glob
+    
     # load simulated mosaics by the O-PIPP method
     points_files = glob("examples/simulated/HC/W1_*.points")
-    pattern.load_from_files(points_files, scope=scope, is_nature=False)
+    pattern.load_from_files(points_files, scope=scope, is_nature=False, simulated_tag="O-PIPP")
     pattern.draw_feature_hist("nn", simulated_tag="O-PIPP")
     pattern.draw_feature_hist("vd", simulated_tag="O-PIPP")
 
@@ -74,6 +75,15 @@ if __name__ == "__main__":
     pattern.draw_feature_hist("nn", simulated_tag="PIPP")
     pattern.draw_feature_hist("vd", simulated_tag="PIPP")
     
+    # draw the KL divergency of two groups of simulated mosaics
+    pattern.draw_values_box(True, "nn", False, ["O-PIPP", "PIPP"])
+    pattern.draw_values_box(True, "vd", False, ["O-PIPP", "PIPP"])
+
+    # draw RIs of two groups of simulated mosaics
+    pattern.set_feature("NNRI", Distribution(10, 1), get_NNRI)
+    pattern.draw_values_box(False, "NNRI", False, ["O-PIPP", "PIPP"])
+    pattern.set_feature("VDRI", Distribution(10, 1), get_VDRI)
+    pattern.draw_values_box(False, "VDRI", False, ["O-PIPP", "PIPP"])
 
     ########################################
     #

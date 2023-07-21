@@ -38,7 +38,7 @@ class Distribution:
     sample_ri()
         Calculate the Regularity Index of values generated randomly.
     """
-    def __init__(self, max_value: float, n_bin: int, target_probs: list=None, min_value: float=0.):
+    def __init__(self, max_value: float, n_bin: int=1, target_probs: list=None, min_value: float=0.):
         assert max_value > min_value
         self.max_value = max_value
         self.min_value = min_value

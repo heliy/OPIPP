@@ -132,25 +132,26 @@ class Pattern:
     ########################################
 
     def draw_feature_hist(self, feature_label: str, nature_color: str="skyblue", 
-                          target_color: str="gray", simulated_color: str="red", simulated_tag: str=SIMULATED_TAG):
+                          target_color: str="gray", simulated_color: str="red", simulated_tag: str=SIMULATED_TAG,
+                          **args):
         distribution = self.distributions[feature_label]
         centers = distribution.get_value_centers()
         width = centers[1]-centers[0]
         ax = plt.subplot()
         if nature_color is not None and len(self.nature_mosaics) > 0:
             nature_probs = self.estimate_feature(feature_label, nature=True)
-            plt.bar(centers, nature_probs, color=nature_color, label="Nature", align="center", alpha=0.4, width=width)
+            plt.bar(centers, nature_probs, color=nature_color, label="Nature", align="center", alpha=0.4, width=width, **args)
         if target_color is not None and distribution.has_target():
-            plt.bar(centers, distribution.target_probs, color=target_color, label="Target", align="center", alpha=0.4, width=width)
+            plt.bar(centers, distribution.target_probs, color=target_color, label="Target", align="center", alpha=0.4, width=width, **args)
         if simulated_color is not None and len(self.simulated_mosaics[simulated_tag]) > 0:
             simulated_probs = self.estimate_feature(feature_label, nature=False, simulated_tag=simulated_tag)
-            plt.bar(centers, simulated_probs, color=simulated_color, label="Simulated: %s"%simulated_tag, align="center", alpha=0.4, width=width)            
+            plt.bar(centers, simulated_probs, color=simulated_color, label="Simulated: %s"%simulated_tag, align="center", alpha=0.4, width=width, **args)            
         plt.legend()
         ax.set_ylabel("Frequency")
         ax.set_title("Feature: %s"%feature_label)
         plt.show()
 
-    def draw_values_box(self, draw_loss: bool, feature_label: str=None, draw_nature: bool=True, simulated_tags: list=[SIMULATED_TAG], **args):
+    def draw_values_box(self, draw_loss: bool, feature_label: str, draw_nature: bool=False, simulated_tags: list=[SIMULATED_TAG], **args):
         if draw_loss:
             assert self.distributions[feature_label].has_target()
         x_labels = []
@@ -171,14 +172,56 @@ class Pattern:
                 values = self.__get_feature_values(self.simulated_mosaics[tag], feature_label)
             x_labels.append("Simulated: %s"%tag)
             ys.append(values)
+        ax = plt.subplot()
         plt.boxplot(ys, vert=True, patch_artist=True, labels=x_labels, **args)
+        if draw_loss:
+            ax.set_title("KL divergency of features: %s"%feature_label)
+        else:
+            ax.set_title("Values of features: %s"%feature_label)
         plt.show()
         
-    def draw_kl_boxes():
-        pass
-
-    def draw_kl_bar():
-        pass
+    def draw_value_bars(self, draw_loss: bool, feature_colors: dict, method: Callable=np.mean, draw_nature: bool=False, simulated_tags: list=[SIMULATED_TAG], **args):
+        features = list(feature_colors.keys())
+        if draw_loss:
+            for label in feature_colors:
+                assert self.distributions[label].has_target()
+        x_labels = []
+        ys = []
+        for i_feature, feature_label in enumerate(features):
+            ys.append([])
+            if draw_nature and len(self.nature_mosaics) > 0:
+                if draw_loss:
+                    values = list(self.__get_kl([m], feature_label) for m in self.nature_mosaics)
+                else:
+                    values = self.__get_feature_values(self.nature_mosaics, feature_label)
+                ys[i_feature].append(method(values))
+                if i_feature == 0:
+                    x_labels.append("Nature")
+            for tag in simulated_tags:
+                if tag not in self.simulated_mosaics:
+                    continue
+                if i_feature == 0:
+                    x_labels.append("Simulated: %s"%tag)
+                if draw_loss:
+                    values = list(self.__get_kl([m], feature_label) for m in self.simulated_mosaics[tag])
+                else:
+                    values = self.__get_feature_values(self.simulated_mosaics[tag], feature_label)
+                ys[i_feature].append(method(values))
+        for i_feature in range(1, len(ys)):
+            ys[i_feature] = np.array(ys[i_feature])
+            ys[i_feature] += ys[i_feature-1]
+        ax = plt.subplot()
+        for i_feature, feature_label in enumerate(features[::-1]):
+            plt.bar(range(len(x_labels)), ys[len(features)-i_feature-1], label=feature_label, **args)
+        print(x_labels)
+        ax.set_xticks(range(len(x_labels)))
+        ax.set_xticklabels(x_labels)
+        if draw_loss:
+            ax.set_title("KL divergency of features: %s"%", ".join(features))
+        else:
+            ax.set_title("Values of features: %s"%", ".join(features))
+        plt.legend()
+        plt.show()
 
     ########################################
     #

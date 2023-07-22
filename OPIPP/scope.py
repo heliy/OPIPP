@@ -80,3 +80,6 @@ class Scope:
         else:
             points.append([point_x, self.max_y*2-point_y])
         return points
+    
+    def distance2boundary(self, point_x: float, point_y: float) -> float:
+        return np.abs([point_x-self.min_x, point_x-self.max_x, point_y-self.min_y, point_y-self.max_y]).min()

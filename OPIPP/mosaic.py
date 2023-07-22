@@ -6,7 +6,7 @@ from scipy.spatial import Voronoi
 from scipy.spatial import voronoi_plot_2d
 import networkx as nx
 
-from .utils import get_poly_area, get_poly_centeroid
+from .utils import get_poly_area, get_distances
 from .scope import Scope
 
 class Mosaic(nx.Graph):
@@ -80,14 +80,19 @@ class Mosaic(nx.Graph):
     ########################################
 
     def __set_effective_filter(self):
-        vor = Voronoi(self.points, qhull_options='Qbb Qc Qx')
-        outs = self.scope.filter(vor.vertices, not_in=True)
-        outs = set(list(outs))
-        self.effective_filter = np.zeros(self.points.shape[0]).astype(bool)
-        for i in range(self.points.shape[0]):
-            region = list(vor.regions[vor.point_region[i]])
-            if len(region) > 0 and -1 not in region and len(set(region)&outs) == 0:
-                self.effective_filter[i] = True
+
+        # vor = Voronoi(self.points, qhull_options='Qbb Qc Qx')
+        # outs = self.scope.filter(vor.vertices, not_in=True)
+        # outs = set(list(outs))
+        fs = []
+        mask = np.zeros(self.get_points_n()).astype(bool)
+        for i, point in enumerate(self.points):
+            distance2boundary = self.scope.distance2boundary(*point)
+            mask[:] = True
+            mask[i] = False
+            distance2others = get_distances(point, self.points[mask]).min()
+            fs.append(distance2others < distance2boundary)
+        self.effective_filter = np.array(fs)
 
     def get_effective_filter(self) -> np.ndarray:
         return self.effective_filter
@@ -203,115 +208,85 @@ class Mosaic(nx.Graph):
     #
     ########################################
 
-    def get_centeroids(self):
-        domains = self.net.get_domains()
-        centeroids = np.zeros(self.points.shape)
-        centeroids[:] = np.inf
-        for key in domains:
-            centeroids[key] = get_poly_centeroid(domains[key])
-        return centeroids
-    
-    def draw_centeroids_scatter(self, edge_color='gray'):
-        centeroids = self.get_centeroids()
-        indices = centeroids[:, 0] != np.inf
-        N = np.where(indices)[0].shape[0]
-        pos = np.concatenate((centeroids[indices], self.points[indices])).reshape((N*2, 2))
-        graph = nx.DiGraph()
-        graph.add_nodes_from(range(N*2))
-        graph.add_edges_from([(i, i+N) for i in range(N)])
-
+    def draw_points(self, highlights=None, draw_grid=True, grid=1, nonhighlight_alpha=0.3, 
+                    equal_aspect=True,
+                    point_args={"color": "r", "s": 5}):
         ax = plt.subplot()
-        nx.draw_networkx(graph, pos=pos, edge_color=edge_color, node_size=0, with_labels=False)
-        plt.scatter(pos[:N, 0], pos[:N, 1], color='b')
-        plt.scatter(pos[N:, 0], pos[N:, 1], color='r')
-        ax.set_xlim([self.scope.min_x, self.scope.max_x])
-        ax.set_ylim([self.scope.min_y, self.scope.max_y])
-        ax.tick_params(left=True, bottom=True, labelleft=True, labelbottom=True)
-        plt.show()
-
-    def draw_centeroids_centered(self):
-        centeroids = self.get_centeroids()
-        indices = centeroids[:, 0] != np.inf
-        N = np.where(indices)[0].shape[0]
-        pos = self.points[indices]-centeroids[indices]
-        ax = plt.subplot()
-        ax.set_aspect('equal')
-        plt.scatter(pos[1:, 0], pos[1:, 1], color='r', s=5)
-        plt.scatter([0], [0], color='gray', s=5)
-        lim = np.abs(pos).max()*1.5
-        plt.xlim([-lim, lim])
-        plt.ylim([-lim, lim])
-        ax.tick_params(left=True, bottom=True, labelleft=True, labelbottom=True)
-        plt.show()
-
-    def draw_points(self, highlights=None, grid=1, color='r', size=5):
-        # background
-        ax = plt.subplot()
-        ax.set_aspect('equal')
-        plt.scatter(self.points[:, 0], self.points[:, 1], color=color, s=size, alpha=0.3)
+        if equal_aspect:
+            ax.set_aspect('equal')
+        plt.scatter(self.points[:, 0], self.points[:, 1], alpha=nonhighlight_alpha, **point_args)
         if highlights is None:
             highlights = list(self.iter_effective_indices())
-        plt.scatter(self.points[highlights][:, 0], self.points[highlights][:, 1], color=color, s=size, alpha=1.0)
+        plt.scatter(self.points[highlights][:, 0], self.points[highlights][:, 1], alpha=1.0, **point_args)
         ax.set_xticks(np.linspace(self.scope.min_x, self.scope.max_x, grid+1))
         ax.set_yticks(np.linspace(self.scope.min_y, self.scope.max_y, grid+1))
         ax.set_xlim([self.scope.min_x, self.scope.max_x])
         ax.set_ylim([self.scope.min_y, self.scope.max_y])
         ax.tick_params(left=True, bottom=True, labelleft=True, labelbottom=True)
-        plt.grid()
+        plt.grid(draw_grid)
         plt.show()
 
-    def draw_triangulation(self, grid=1, color='r', size=5):
-        # background
+    def draw_neighbors(self, highlights=None, grid=1, nonhighlight_alpha=0.3, 
+                           equal_aspect=True,
+                           point_args={"s": 5, "color": "r"}, 
+                           edge_args={"lw": 0.5, "color": "gray"}):
         ax = plt.subplot()
-        ax.set_aspect('equal')
-        plt.scatter(self.points[:, 0], self.points[:, 1], color=color, s=size, alpha=0.3)
-        p_indices = list(self.iter_effective_indices())
-        plt.scatter(self.points[p_indices][:, 0], self.points[p_indices][:, 1], color=color, s=size, alpha=1.0)
+        if equal_aspect:
+            ax.set_aspect('equal')
+        plt.scatter(self.points[:, 0], self.points[:, 1], alpha=nonhighlight_alpha, **point_args)
+        if highlights is None:
+            highlights = list(self.iter_effective_indices())
+        plt.scatter(self.points[highlights][:, 0], self.points[highlights][:, 1], alpha=1.0, **point_args)
         ax.set_xticks(np.linspace(self.scope.min_x, self.scope.max_x, grid+1))
         ax.set_yticks(np.linspace(self.scope.min_y, self.scope.max_y, grid+1))
         ax.set_xlim([self.scope.min_x, self.scope.max_x])
         ax.set_ylim([self.scope.min_y, self.scope.max_y])
         ax.tick_params(left=True, bottom=True, labelleft=True, labelbottom=True)
         for edge in self.edges:
-            ax.plot([self.points[edge[0], 0], self.points[edge[1], 0]], [self.points[edge[0], 1], self.points[edge[1], 1]], color='gray', lw=0.5)
-        plt.grid()
+            ax.plot([self.points[edge[0], 0], self.points[edge[1], 0]],
+                    [self.points[edge[0], 1], self.points[edge[1], 1]], **edge_args)
         plt.show()
 
-    def draw_nn_graph(self, edge_color='k', node_color='r', node_size=5):
-        p_indices = list(self.iter_effective_indices())
-        nn_graph = self.get_nn_graph(nodes=p_indices)
+    def draw_nn_graph(self, highlights=None, grid=1, nonhighlight_alpha=0.3, 
+                           equal_aspect=True, 
+                           network_args={"edge_color": "k", "node_size": 0, "with_labels": False}, 
+                           points_args={"color": "r", "s": 5}):
         ax = plt.subplot()
-        ax.set_aspect('equal')
-        nx.draw_networkx(nn_graph, pos=self.points, edge_color=edge_color, node_size=0, with_labels=False)
-        plt.scatter(self.points[:, 0], self.points[:, 1], color=node_color, s=node_size, alpha=0.3)
-        plt.scatter(self.points[p_indices][:, 0], self.points[p_indices][:, 1], color=node_color, s=node_size, alpha=1.0)
+        if equal_aspect:
+            ax.set_aspect('equal')
+        if highlights is None:
+            highlights = list(self.iter_effective_indices())
+        nn_graph = self.get_nn_graph(nodes=highlights)
+        nx.draw_networkx(nn_graph, pos=self.points, **network_args)
+        plt.scatter(self.points[:, 0], self.points[:, 1], alpha=nonhighlight_alpha, **points_args)
+        plt.scatter(self.points[highlights][:, 0], self.points[highlights][:, 1], alpha=1.0, **points_args)
+        ax.set_xticks(np.linspace(self.scope.min_x, self.scope.max_x, grid+1))
+        ax.set_yticks(np.linspace(self.scope.min_y, self.scope.max_y, grid+1))
         ax.set_xlim([self.scope.min_x, self.scope.max_x])
         ax.set_ylim([self.scope.min_y, self.scope.max_y])
         ax.tick_params(left=True, bottom=True, labelleft=True, labelbottom=True)
         plt.show()
 
-    def draw_vorarea_graph(self, line_width=0.5, node_color='r', node_size=10):
+    def draw_vorareas(self, highlights=None, nonhighlight_alpha=0.3, equal_aspect=True, 
+                      region_args={"color": "gray", "alpha": 0.5},
+                      voronoi_args={"show_points": False, "line_width": 0.5},
+                      node_args={"color": "r", "s": 10}):
         ax = plt.subplot()
-        ax.set_aspect('equal')
-        vor = self.vor
-        for region in vor.regions:
-            polygon = [self.vor.vertices[i] for i in region]
-            ax.fill(*zip(*polygon), color='gray', alpha=0.5)
-        voronoi_plot_2d(vor, ax=ax, show_points=False, line_width=line_width)
+        if equal_aspect:
+            ax.set_aspect('equal')
+        if highlights is None:
+            highlights = list(self.iter_effective_indices())
+        vor = self.extended_vor
+        for rindex in vor.point_region[:self.get_points_n()]:
+            polygon = [vor.vertices[i] for i in vor.regions[rindex]]
+            ax.fill(*zip(*polygon), **region_args)
+        voronoi_plot_2d(vor, ax=ax, **voronoi_args)
 
         p_indices = list(self.iter_effective_indices())
-        ax.scatter(self.points[:, 0], self.points[:, 1], color=node_color, s=node_size, alpha=0.3)
-        ax.scatter(self.points[p_indices][:, 0], self.points[p_indices][:, 1], color=node_color, s=node_size, alpha=1.0)
-
+        ax.scatter(self.points[:, 0], self.points[:, 1], alpha=nonhighlight_alpha, **node_args)
+        ax.scatter(self.points[p_indices][:, 0], self.points[p_indices][:, 1], alpha=1.0, **node_args)
         plt.xlim([self.scope.min_x, self.scope.max_x])
         plt.ylim([self.scope.min_y, self.scope.max_y])
         ax.tick_params(left=True, bottom=True, labelleft=True, labelbottom=True)
         plt.show()
     
-    def draw_raw(self, edge_color='r', node_color='b', node_size=5):
-        ax = plt.subplot()
-        nx.draw_networkx(self, pos=self.points, edge_color=edge_color, node_color=node_color, node_size=node_size)
-        ax.set_xlim([self.scope.min_x, self.scope.max_x])
-        ax.set_ylim([self.scope.min_y, self.scope.max_y])
-        ax.tick_params(left=True, bottom=True, labelleft=True, labelbottom=True)
-        plt.show()

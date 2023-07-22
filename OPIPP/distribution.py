@@ -84,6 +84,6 @@ class Distribution:
         centers = np.random.choice(self.get_value_centers(), p=self.target_probs, size=n)
         return (np.random.rand(n)-0.5)*self.step+centers
 
-    def sample_ri(self, n_sample=50000) -> float:
+    def sample_ri(self, n_sample: int=50000) -> float:
         values = self.sample_values(n_sample)
         return values.mean()/values.std()

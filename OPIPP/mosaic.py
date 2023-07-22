@@ -1,3 +1,5 @@
+from typing import Generator, Callable
+
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.spatial.distance import euclidean
@@ -55,16 +57,16 @@ class Mosaic(nx.Graph):
             distance = euclidean(self.points[u], self.points[v])
             self.edges[u, v]["length"] = distance
 
-    def __edge_length(self, u, v):
+    def __edge_length(self, u: int, v: int) -> float:
         try:
             return self.edges[u, v]["length"] 
         except:
             return self.edges[v, u]["length"]
         
-    def get_points_n(self):
+    def get_points_n(self) -> int:
         return self.points.shape[0]
 
-    def save(self, fname: str, split: bool=False):
+    def save(self, fname: str, split: bool=False) -> None:
         if split:
             cons = fname.split(".")
             pre_name = ".".join(cons[:-1])
@@ -79,11 +81,7 @@ class Mosaic(nx.Graph):
     #
     ########################################
 
-    def __set_effective_filter(self):
-
-        # vor = Voronoi(self.points, qhull_options='Qbb Qc Qx')
-        # outs = self.scope.filter(vor.vertices, not_in=True)
-        # outs = set(list(outs))
+    def __set_effective_filter(self) -> None:
         fs = []
         mask = np.zeros(self.get_points_n()).astype(bool)
         for i, point in enumerate(self.points):
@@ -97,12 +95,12 @@ class Mosaic(nx.Graph):
     def get_effective_filter(self) -> np.ndarray:
         return self.effective_filter
     
-    def iter_effective_indices(self):
+    def iter_effective_indices(self) -> Generator[int, None, None]:
         for p_index, is_effective in enumerate(self.get_effective_filter()):
             if is_effective:
                 yield p_index
 
-    def get_boundary_indices(self):
+    def get_boundary_indices(self) -> np.ndarray:
         """ Gets indices of boundary points """
         in_surrounds = np.arange(self.points.shape[0])[1-self.get_effective_filter()]
         return in_surrounds
@@ -113,7 +111,7 @@ class Mosaic(nx.Graph):
     #
     ########################################
 
-    def __get_features(self, feauture_func, indices: np.ndarray=None, effective_filter: bool=True) -> list:
+    def __get_features(self, feauture_func: Callable, indices: np.ndarray=None, effective_filter: bool=True) -> list:
         if indices is None or len(indices) == 0:
             indices = range(self.points.shape[0])
         if effective_filter:
@@ -146,7 +144,7 @@ class Mosaic(nx.Graph):
             return area
         return self.__get_features(feauture_func=vorarea_func, indices=indices, effective_filter=effective_filter)
 
-    def find_neighbors(self, p_index, effective_only=False) -> list:
+    def find_neighbors(self, p_index: int, effective_only=False) -> list:
         neighbors = list(self.neighbors(p_index))
         if effective_only:
             return list(set(neighbors).difference(set(self.pnet.get_boundary_indices())))
@@ -163,7 +161,7 @@ class Mosaic(nx.Graph):
                 min_neighbor = neighbor
         return min_neighbor, min_distance
 
-    def get_nn_graph(self, nodes=None) -> nx.DiGraph:
+    def get_nn_graph(self, nodes: list=None) -> nx.DiGraph:
         """ 
         Gets a directed subgraph containing all points and NN edges 
         """
@@ -193,7 +191,7 @@ class Mosaic(nx.Graph):
             return nn_distance
         return self.__get_features(feauture_func=nn_func, indices=indices, effective_filter=effective_filter)
 
-    def get_distances(self, indices: list=None):
+    def get_distances(self, indices: list=None)-> np.ndarray:
         """ Gets distances of edges related to given cells, all edges if not specific """
         if indices is not None:
             edge_iter = self.edges(indices)
@@ -208,9 +206,9 @@ class Mosaic(nx.Graph):
     #
     ########################################
 
-    def draw_points(self, highlights=None, draw_grid=True, grid=1, nonhighlight_alpha=0.3, 
-                    equal_aspect=True,
-                    point_args={"color": "r", "s": 5}):
+    def draw_points(self, highlights: list=None, draw_grid: bool=True, grid: int=1, 
+                    nonhighlight_alpha: float=0.3, equal_aspect: bool=True,
+                    point_args: dict={"color": "r", "s": 5}) -> None:
         ax = plt.subplot()
         if equal_aspect:
             ax.set_aspect('equal')
@@ -226,10 +224,10 @@ class Mosaic(nx.Graph):
         plt.grid(draw_grid)
         plt.show()
 
-    def draw_neighbors(self, highlights=None, grid=1, nonhighlight_alpha=0.3, 
-                           equal_aspect=True,
-                           point_args={"s": 5, "color": "r"}, 
-                           edge_args={"lw": 0.5, "color": "gray"}):
+    def draw_neighbors(self, highlights: list=None, grid: int=1, 
+                       nonhighlight_alpha: float=0.3, equal_aspect: bool=True,
+                       point_args={"s": 5, "color": "r"}, 
+                       edge_args={"lw": 0.5, "color": "gray"}) -> None:
         ax = plt.subplot()
         if equal_aspect:
             ax.set_aspect('equal')
@@ -247,10 +245,10 @@ class Mosaic(nx.Graph):
                     [self.points[edge[0], 1], self.points[edge[1], 1]], **edge_args)
         plt.show()
 
-    def draw_nn_graph(self, highlights=None, grid=1, nonhighlight_alpha=0.3, 
-                           equal_aspect=True, 
-                           network_args={"edge_color": "k", "node_size": 0, "with_labels": False}, 
-                           points_args={"color": "r", "s": 5}):
+    def draw_nn_graph(self, highlights: list=None, grid: int=1, 
+                        nonhighlight_alpha: float=0.3, equal_aspect: bool=True,
+                        network_args={"edge_color": "k", "node_size": 0, "with_labels": False}, 
+                        points_args={"color": "r", "s": 5}) -> None:
         ax = plt.subplot()
         if equal_aspect:
             ax.set_aspect('equal')
@@ -267,10 +265,10 @@ class Mosaic(nx.Graph):
         ax.tick_params(left=True, bottom=True, labelleft=True, labelbottom=True)
         plt.show()
 
-    def draw_vorareas(self, highlights=None, nonhighlight_alpha=0.3, equal_aspect=True, 
-                      region_args={"color": "gray", "alpha": 0.5},
+    def draw_vorareas(self, highlights: list=None, nonhighlight_alpha: float=0.3, 
+                      equal_aspect: bool=True, region_args={"color": "gray", "alpha": 0.5},
                       voronoi_args={"show_points": False, "line_width": 0.5},
-                      node_args={"color": "r", "s": 10}):
+                      node_args={"color": "r", "s": 10}) -> None:
         ax = plt.subplot()
         if equal_aspect:
             ax.set_aspect('equal')

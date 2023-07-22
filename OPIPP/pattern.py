@@ -1,4 +1,4 @@
-from typing import Callable
+from typing import Callable, Tuple
 from time import time
 
 import numpy as np
@@ -24,7 +24,7 @@ class Pattern:
         self.distributions = {}
         self.methods = {}
 
-    def clear_mosaics(self, with_nature: bool=False):
+    def clear_mosaics(self, with_nature: bool=False) -> None:
         self.simulated_mosaics = {SIMULATED_TAG: []}
         if with_nature:
             self.nature_mosaics = []
@@ -35,16 +35,18 @@ class Pattern:
     #
     ########################################
 
-    def add_nature_mosaic(self, mosaic: Mosaic):
+    def add_nature_mosaic(self, mosaic: Mosaic) -> None:
         self.nature_mosaics.append(mosaic)
 
-    def add_simulated_mosaic(self, mosaic: Mosaic, tag: str=SIMULATED_TAG):
+    def add_simulated_mosaic(self, mosaic: Mosaic, tag: str=SIMULATED_TAG) -> None:
         if tag in self.simulated_mosaics:
             self.simulated_mosaics[tag].append(mosaic)
         else:
             self.simulated_mosaics[tag] = [mosaic]
 
-    def load_from_files(self, fnames: list, scope: Scope, is_nature: bool=True, simulated_tag: str=SIMULATED_TAG):
+    def load_from_files(self, fnames: list, scope: Scope, is_nature: bool=True, 
+                        simulated_tag: str=SIMULATED_TAG) -> list:
+        mosaics = []
         for fname in fnames:
             if fname[-4:] == ".npy":
                 points = np.load(fname)
@@ -58,9 +60,11 @@ class Pattern:
                 self.add_nature_mosaic(mosaic)
             else:
                 self.add_simulated_mosaic(mosaic, tag=simulated_tag)
+            mosaics.append(mosaic)
+        return mosaics
 
     def dump_to_files(self, prefix: str, ext: str="points", is_nature: bool=True, split: bool=False, 
-                      simulated_tag: str=SIMULATED_TAG):
+                      simulated_tag: str=SIMULATED_TAG) -> None:
         if is_nature:
             mosaics = self.nature_mosaics
         else:
@@ -75,7 +79,7 @@ class Pattern:
     #
     ########################################
 
-    def set_density(self, density: float):
+    def set_density(self, density: float) -> None:
         self.density = density
 
     def estimate_density(self) -> float:
@@ -88,7 +92,7 @@ class Pattern:
             total_area += mosaic.scope.get_area()
         return float(total_num / total_area)
     
-    def set_feature(self, feature_label: str, distribution: Distribution, feature_method: Callable=None):
+    def set_feature(self, feature_label: str, distribution: Distribution, feature_method: Callable=None) -> None:
         self.distributions[feature_label] = distribution
         self.methods[feature_label] = feature_method
 
@@ -113,12 +117,12 @@ class Pattern:
                 features.append(key)
         return features 
     
-    def __get_feature_values(self, mosaics: list, feature_label: str):
+    def __get_feature_values(self, mosaics: list, feature_label: str) -> np.ndarray:
         method = self.methods[feature_label]
         values = np.concatenate(list(method(mosaic) for mosaic in mosaics))
         return values
     
-    def __get_kl(self, mosaics: list, feature_label: str):
+    def __get_kl(self, mosaics: list, feature_label: str) -> float:
         values = self.__get_feature_values(mosaics=mosaics, feature_label=feature_label)
         return self.distributions[feature_label].KL(values)
     
@@ -133,7 +137,7 @@ class Pattern:
 
     def draw_feature_hist(self, feature_label: str, nature_color: str="skyblue", 
                           target_color: str="gray", simulated_color: str="red", simulated_tag: str=SIMULATED_TAG,
-                          **args):
+                          **args) -> None:
         distribution = self.distributions[feature_label]
         centers = distribution.get_value_centers()
         width = centers[1]-centers[0]
@@ -151,7 +155,8 @@ class Pattern:
         ax.set_title("Feature: %s"%feature_label)
         plt.show()
 
-    def draw_values_box(self, draw_loss: bool, feature_label: str, draw_nature: bool=False, simulated_tags: list=[SIMULATED_TAG], **args):
+    def draw_values_box(self, draw_loss: bool, feature_label: str, draw_nature: bool=False, 
+                        simulated_tags: list=[SIMULATED_TAG], **args) -> None:
         if draw_loss:
             assert self.distributions[feature_label].has_target()
         x_labels = []
@@ -180,7 +185,8 @@ class Pattern:
             ax.set_title("Values of features: %s"%feature_label)
         plt.show()
         
-    def draw_value_bars(self, draw_loss: bool, feature_colors: dict, method: Callable=np.mean, draw_nature: bool=False, simulated_tags: list=[SIMULATED_TAG], **args):
+    def draw_value_bars(self, draw_loss: bool, feature_colors: dict, method: Callable=np.mean, 
+                        draw_nature: bool=False, simulated_tags: list=[SIMULATED_TAG], **args) -> None:
         features = list(feature_colors.keys())
         if draw_loss:
             for label in feature_colors:
@@ -229,7 +235,8 @@ class Pattern:
     #
     ########################################
 
-    def get_interaction_func(self, values: list, axis: np.ndarray=None, p0: list=[20, 1], delta: float=3., draw: bool=False) -> Callable:
+    def get_interaction_func(self, values: list, axis: np.ndarray=None, p0: list=[20, 1], 
+                             delta: float=3., draw: bool=False) -> Callable:
         if axis is None:
             # estimated parameters from values
             theta, phi, alpha = tuple(values)
@@ -258,7 +265,7 @@ class Pattern:
     def simulate(self, mosaic: Mosaic, interaction_func: Callable=None, 
                  features: list=None, schedule: AdaptiveSchedule=AdaptiveSchedule(), 
                  max_step: int=None, update_ratio: float=None,
-                 save_prefix: str=None, save_step: int=1, verbose: bool=True):
+                 save_prefix: str=None, save_step: int=1, verbose: bool=True) -> Tuple[Mosaic, list]:
         if interaction_func is None:
             interaction_func = lambda x: 1.0 # accept all
         useable_features = self.get_useable_features()

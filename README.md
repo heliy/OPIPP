@@ -2,7 +2,7 @@
 
 A Python implementation of **OPIPP**, a method for precisely generating [*retinal mosaics*](tutorial/0.background.md#retinal-mosaic) by  neural [*spatial patterns*](tutorial/0.background.md#spatial-pattern-analysis). 
 
-![overview](tutorial/retinal_mosaic_modelling.png)
+![overview](tutorial/imgs/rm-overview.png)
 
 
 # Install
@@ -31,14 +31,12 @@ pip install OPIPP
 # Quick start
 
 We propose a short tutorial, as
-1. [Short introdction of backgrounds](tutorial/0.background.md)
+1. [Short introduction of backgrounds](tutorial/0.background.md)
 2. [Importing retinal spatial pattern datasets from local files](tutorial/1.import.md)
 3. [Analyzing and visualizing spatial patterns of mosaics](tutorial/2.analysis.md)
 4. [Generating artifial retinal mosaics](tutorial/3.simulation.md)
 5. [Tools for parameter estimation and parallelized processing](tutorial/4.external_tools.md)
 6. [Customizing features and the optimization](tutorial/5.extension.md)
-
-The [documentation]() provides an entire index of methods and attributes.
 
 # Example
 

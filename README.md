@@ -1,8 +1,24 @@
 # OPIPP: Optimization-based Pairwise Interaction Point Process
 
-A Python implementation of **OPIPP**, a method for precisely generating [*retinal mosaics*](tutorial/0.background.md#retinal-mosaic) by  neural [*spatial patterns*](tutorial/0.background.md#spatial-pattern-analysis). 
+A Python implementation of **OPIPP**, a method for precisely generating artifical **retinal mosaics**, the spatial organization of retinal neurons. [Here](tutorial/0.background.md) is a short introduction of the background.
+
+## Pipeline
 
 ![overview](tutorial/imgs/rm-overview.png)
+
+We recommend the "import-analysis-simulation" pipeline for generating artificial mosaics and purpose a tutorial for each step, as
+1. [Importing retinal spatial pattern datasets from local files](tutorial/1.import.md)
+2. [Analyzing and visualizing spatial patterns of mosaics](tutorial/2.analysis.md)
+3. [Simulating artifial retinal mosaics](tutorial/3.simulation.md)
+
+Users are welcome to [extend and customize methods](tutorial/4.extension.md) for feature calculation and mosaic simulation.
+
+## Tools
+
+Here are useful tools that are not implemented in the current version. We plan to apply these methods in later development.
+
+- [Estimate parameters of mosaic simulation by R](tutorial/estimate_inter_ps.md)
+- [Parallel process for mosaic generation by MPI](tutorial/parallel_processing.md)
 
 
 # Install
@@ -13,11 +29,11 @@ A Python implementation of **OPIPP**, a method for precisely generating [*retina
 pip install git+https://github.com/heliy/OPIPP
 ```
 
-or 
+<!-- or 
 
 ```console
 pip install OPIPP
-```
+``` -->
 
 ## Dependencies
 
@@ -26,22 +42,16 @@ pip install OPIPP
 - scipy >= 1.9.0
 - matplotlib >= 3.2.0
 - networkx >= 2.0.0
- 
 
-# Quick start
+# Citation
 
-We propose a short tutorial, as
-1. [Short introduction of backgrounds](tutorial/0.background.md)
-2. [Importing retinal spatial pattern datasets from local files](tutorial/1.import.md)
-3. [Analyzing and visualizing spatial patterns of mosaics](tutorial/2.analysis.md)
-4. [Generating artifial retinal mosaics](tutorial/3.simulation.md)
-5. [Tools for parameter estimation and parallelized processing](tutorial/4.external_tools.md)
-6. [Customizing features and the optimization](tutorial/5.extension.md)
-
-# Example
-
-# TODO
+- TODO
 
 # References
+
+- The example mosaic for retinal horizontal cells and related spatial features are from [(Keeley et al., 2020)](https://doi.org/10.1002/cne.24880).
+
+- In the optimization, we use the adaptive simulated annealing algorithm from [(Ingber, 1993)](https://optimization-online.org/wp-content/uploads/2001/03/291.pdf).
+
 
 

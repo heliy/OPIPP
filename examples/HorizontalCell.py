@@ -1,5 +1,5 @@
 """
-Mosaic for Horizontal Cells from (Keeley et al., 2019) Figure 8-1.
+Mosaic for Horizontal Cells from (Keeley et al., 2020) Figure 8-1.
 """
 
 import numpy as np

@@ -15,7 +15,7 @@ Users are welcome to [extend and customize methods](tutorial/4.extension.md) for
 
 ## Tools
 
-Here are useful tools that are not implemented in the current version. We plan to apply these methods in later development.
+Here are useful tools that are not implemented in the current version. We plan to apply these methods in future development.
 
 - [Estimate parameters of mosaic simulation by R](tutorial/estimate_inter_ps.md)
 - [Parallel process for mosaic generation by MPI](tutorial/parallel_processing.md)

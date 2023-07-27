@@ -23,13 +23,13 @@ pattern.set_feature("vd", vd_distribution, get_vorareas)
 
 ########################################
 #
-# Build the Pattern by nature mosaics
+# Build the Pattern by natural mosaics
 #
 ########################################
 
-nature_points = np.loadtxt("examples/nature/HC/F8-1-points.txt")
-nature_mosaic = Mosaic(points=nature_points, scope=scope)
-pattern.add_nature_mosaic(nature_mosaic)
+natural_points = np.loadtxt("examples/natural/HC/F8-1-points.txt")
+natural_mosaic = Mosaic(points=natural_points, scope=scope)
+pattern.add_natural_mosaic(natural_mosaic)
 density = pattern.estimate_density()
 pattern.set_density(density=density)
 pattern.estimate_feature("nn")
@@ -65,36 +65,36 @@ if __name__ == "__main__":
 
     # load simulated mosaics by the O-PIPP method
     points_files = glob("examples/simulated/HC/W1_*.points")
-    pattern.load_from_files(points_files, scope=scope, is_nature=False, simulated_tag="O-PIPP")
+    pattern.load_from_files(points_files, scope=scope, is_natural=False, simulated_tag="O-PIPP")
     pattern.draw_feature_hist("nn", simulated_tag="O-PIPP")
     pattern.draw_feature_hist("vd", simulated_tag="O-PIPP")
 
     # load simulated mosaics by the PIPP method
     points_files = glob("examples/simulated/HC/PIPP_*.points")
-    pattern.load_from_files(points_files, scope=scope, is_nature=False, simulated_tag="PIPP")
+    pattern.load_from_files(points_files, scope=scope, is_natural=False, simulated_tag="PIPP")
     pattern.draw_feature_hist("nn", simulated_tag="PIPP")
     pattern.draw_feature_hist("vd", simulated_tag="PIPP")
     
-    # draw RIs of two groups of simulated mosaics
-    pattern.set_feature("NNRI", Distribution(10, 1), get_NNRI)
-    pattern.draw_values_box(False, "NNRI", False, ["O-PIPP", "PIPP"])
-    pattern.set_feature("VDRI", Distribution(10, 1), get_VDRI)
-    pattern.draw_values_box(False, "VDRI", False, ["O-PIPP", "PIPP"])
+#     # draw RIs of two groups of simulated mosaics
+#     pattern.set_feature("NNRI", Distribution(10, 1), get_NNRI)
+#     pattern.draw_values_box(False, "NNRI", False, ["O-PIPP", "PIPP"])
+#     pattern.set_feature("VDRI", Distribution(10, 1), get_VDRI)
+#     pattern.draw_values_box(False, "VDRI", False, ["O-PIPP", "PIPP"])
 
-    # draw the KL divergency of two groups of simulated mosaics
-    pattern.draw_values_box(True, "nn", False, ["O-PIPP", "PIPP"])
-    pattern.draw_values_box(True, "vd", False, ["O-PIPP", "PIPP"])
-    pattern.draw_value_bars(True, {"vd": "brown", "nn": "gloden"}, method=np.mean, simulated_tags=["O-PIPP", "PIPP"])
+#     # draw the KL divergency of two groups of simulated mosaics
+#     pattern.draw_values_box(True, "nn", False, ["O-PIPP", "PIPP"])
+#     pattern.draw_values_box(True, "vd", False, ["O-PIPP", "PIPP"])
+#     pattern.draw_value_bars(True, {"vd": "brown", "nn": "gloden"}, method=np.mean, simulated_tags=["O-PIPP", "PIPP"])
 
-    ########################################
-    #
-    # Generate a new mosaic
-    #
-    ########################################
-    mosaic = pattern.new_mosaic(scope=scope)
-    mosaic, losses = pattern.simulate(mosaic, h_func, None, AdaptiveSchedule(), save_prefix="examples/simulated/HC/Sample", save_step=1000)
-    mosaic.draw_vorareas()
-    pattern.add_simulated_mosaic(mosaic)
-    pattern.draw_feature_hist("nn")
-    pattern.draw_feature_hist("vd")
+#     ########################################
+#     #
+#     # Generate a new mosaic
+#     #
+#     ########################################
+#     mosaic = pattern.new_mosaic(scope=scope)
+#     mosaic, losses = pattern.simulate(mosaic, h_func, None, AdaptiveSchedule(), save_prefix="examples/simulated/HC/Sample", save_step=1000)
+#     mosaic.draw_vorareas()
+#     pattern.add_simulated_mosaic(mosaic)
+#     pattern.draw_feature_hist("nn")
+#     pattern.draw_feature_hist("vd")
 

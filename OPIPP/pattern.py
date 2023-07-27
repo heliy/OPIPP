@@ -19,15 +19,15 @@ class Pattern:
     def __init__(self, name: str):
         self.name = name
         self.density = None
-        self.nature_mosaics = []
+        self.natural_mosaics = []
         self.simulated_mosaics = {SIMULATED_TAG: []}
         self.distributions = {}
         self.methods = {}
 
-    def clear_mosaics(self, with_nature: bool=False) -> None:
+    def clear_mosaics(self, with_natural: bool=False) -> None:
         self.simulated_mosaics = {SIMULATED_TAG: []}
-        if with_nature:
-            self.nature_mosaics = []
+        if with_natural:
+            self.natural_mosaics = []
 
     ########################################
     #
@@ -35,8 +35,8 @@ class Pattern:
     #
     ########################################
 
-    def add_nature_mosaic(self, mosaic: Mosaic) -> None:
-        self.nature_mosaics.append(mosaic)
+    def add_natural_mosaic(self, mosaic: Mosaic) -> None:
+        self.natural_mosaics.append(mosaic)
 
     def add_simulated_mosaic(self, mosaic: Mosaic, tag: str=SIMULATED_TAG) -> None:
         if tag in self.simulated_mosaics:
@@ -44,7 +44,7 @@ class Pattern:
         else:
             self.simulated_mosaics[tag] = [mosaic]
 
-    def load_from_files(self, fnames: list, scope: Scope, is_nature: bool=True, 
+    def load_from_files(self, fnames: list, scope: Scope, is_natural: bool=True, 
                         simulated_tag: str=SIMULATED_TAG) -> list:
         mosaics = []
         for fname in fnames:
@@ -56,17 +56,17 @@ class Pattern:
                 except:
                     raise Exception("Unknown file type: %s"%fname)
             mosaic = Mosaic(points=points, scope=scope)
-            if is_nature:
-                self.add_nature_mosaic(mosaic)
+            if is_natural:
+                self.add_natural_mosaic(mosaic)
             else:
                 self.add_simulated_mosaic(mosaic, tag=simulated_tag)
             mosaics.append(mosaic)
         return mosaics
 
-    def dump_to_files(self, prefix: str, ext: str="points", is_nature: bool=True, split: bool=False, 
+    def dump_to_files(self, prefix: str, ext: str="points", is_natural: bool=True, split: bool=False, 
                       simulated_tag: str=SIMULATED_TAG) -> None:
-        if is_nature:
-            mosaics = self.nature_mosaics
+        if is_natural:
+            mosaics = self.natural_mosaics
         else:
             mosaics = self.simulated_mosaics[simulated_tag]
         for i, mosaic in enumerate(mosaics):
@@ -83,11 +83,11 @@ class Pattern:
         self.density = density
 
     def estimate_density(self) -> float:
-        if len(self.nature_mosaics) == 0:
+        if len(self.natural_mosaics) == 0:
             return -1
         total_area = 0.
         total_num = 0.
-        for mosaic in self.nature_mosaics:
+        for mosaic in self.natural_mosaics:
             total_num += mosaic.get_points_n()
             total_area += mosaic.scope.get_area()
         return float(total_num / total_area)
@@ -96,12 +96,12 @@ class Pattern:
         self.distributions[feature_label] = distribution
         self.methods[feature_label] = feature_method
 
-    def estimate_feature(self, feature_label: str, nature: bool=True, simulated_tag: str=SIMULATED_TAG) -> np.ndarray:
+    def estimate_feature(self, feature_label: str, natural: bool=True, simulated_tag: str=SIMULATED_TAG) -> np.ndarray:
         assert feature_label in self.methods and self.methods[feature_label] is not None
-        if nature:
-            assert len(self.nature_mosaics) > 0
+        if natural:
+            assert len(self.natural_mosaics) > 0
             values = np.concatenate(list(self.methods[feature_label](mosaic) for mosaic 
-                                         in self.nature_mosaics)).flatten()
+                                         in self.natural_mosaics)).flatten()
         else:
             assert len(self.simulated_mosaics) > 0
             values = np.concatenate(list(self.methods[feature_label](mosaic) for mosaic 
@@ -135,38 +135,38 @@ class Pattern:
     #
     ########################################
 
-    def draw_feature_hist(self, feature_label: str, nature_color: str="skyblue", 
+    def draw_feature_hist(self, feature_label: str, natural_color: str="skyblue", 
                           target_color: str="gray", simulated_color: str="red", simulated_tag: str=SIMULATED_TAG,
                           **args) -> None:
         distribution = self.distributions[feature_label]
         centers = distribution.get_value_centers()
         width = centers[1]-centers[0]
         ax = plt.subplot()
-        if nature_color is not None and len(self.nature_mosaics) > 0:
-            nature_probs = self.estimate_feature(feature_label, nature=True)
-            plt.bar(centers, nature_probs, color=nature_color, label="Nature", align="center", alpha=0.4, width=width, **args)
+        if natural_color is not None and len(self.natural_mosaics) > 0:
+            natural_probs = self.estimate_feature(feature_label, natural=True)
+            plt.bar(centers, natural_probs, color=natural_color, label="natural", align="center", alpha=0.4, width=width, **args)
         if target_color is not None and distribution.has_target():
             plt.bar(centers, distribution.target_probs, color=target_color, label="Target", align="center", alpha=0.4, width=width, **args)
         if simulated_color is not None and len(self.simulated_mosaics[simulated_tag]) > 0:
-            simulated_probs = self.estimate_feature(feature_label, nature=False, simulated_tag=simulated_tag)
+            simulated_probs = self.estimate_feature(feature_label, natural=False, simulated_tag=simulated_tag)
             plt.bar(centers, simulated_probs, color=simulated_color, label="Simulated: %s"%simulated_tag, align="center", alpha=0.4, width=width, **args)            
         plt.legend()
         ax.set_ylabel("Frequency")
         ax.set_title("Feature: %s"%feature_label)
         plt.show()
 
-    def draw_values_box(self, draw_loss: bool, feature_label: str, draw_nature: bool=False, 
+    def draw_values_box(self, draw_loss: bool, feature_label: str, draw_natural: bool=False, 
                         simulated_tags: list=[SIMULATED_TAG], **args) -> None:
         if draw_loss:
             assert self.distributions[feature_label].has_target()
         x_labels = []
         ys = []
-        if draw_nature and len(self.nature_mosaics) > 0:
+        if draw_natural and len(self.natural_mosaics) > 0:
             if draw_loss:
-                values = list(self.__get_kl([m], feature_label) for m in self.nature_mosaics)
+                values = list(self.__get_kl([m], feature_label) for m in self.natural_mosaics)
             else:
-                values = self.__get_feature_values(self.nature_mosaics, feature_label)
-            x_labels.append("Nature")
+                values = self.__get_feature_values(self.natural_mosaics, feature_label)
+            x_labels.append("natural")
             ys.append(values)
         for tag in simulated_tags:
             if tag not in self.simulated_mosaics:
@@ -186,7 +186,7 @@ class Pattern:
         plt.show()
         
     def draw_value_bars(self, draw_loss: bool, feature_colors: dict, method: Callable=np.mean, 
-                        draw_nature: bool=False, simulated_tags: list=[SIMULATED_TAG], **args) -> None:
+                        draw_natural: bool=False, simulated_tags: list=[SIMULATED_TAG], **args) -> None:
         features = list(feature_colors.keys())
         if draw_loss:
             for label in feature_colors:
@@ -195,14 +195,14 @@ class Pattern:
         ys = []
         for i_feature, feature_label in enumerate(features):
             ys.append([])
-            if draw_nature and len(self.nature_mosaics) > 0:
+            if draw_natural and len(self.natural_mosaics) > 0:
                 if draw_loss:
-                    values = list(self.__get_kl([m], feature_label) for m in self.nature_mosaics)
+                    values = list(self.__get_kl([m], feature_label) for m in self.natural_mosaics)
                 else:
-                    values = self.__get_feature_values(self.nature_mosaics, feature_label)
+                    values = self.__get_feature_values(self.natural_mosaics, feature_label)
                 ys[i_feature].append(method(values))
                 if i_feature == 0:
-                    x_labels.append("Nature")
+                    x_labels.append("natural")
             for tag in simulated_tags:
                 if tag not in self.simulated_mosaics:
                     continue
@@ -255,7 +255,7 @@ class Pattern:
     def new_mosaic(self, scope: Scope, n: int=None) -> Mosaic:
         if n is None or n <= 0:
             if self.density is None:
-                if len(self.nature_mosaics) == 0:
+                if len(self.natural_mosaics) == 0:
                     raise Exception("")
                 self.set_density(self.estimate_density())
             n = int(self.density*scope.get_area())

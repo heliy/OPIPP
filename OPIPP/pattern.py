@@ -24,6 +24,32 @@ class Pattern:
         self.distributions = {}
         self.methods = {}
 
+    def __str__(self):
+        num_simulated_tags = sum(list(len(i) for i in (self.simulated_mosaics.values())))
+        s1 = "Spatial pattern of %s, \n- Density: %s,\n- Natural mosaics: %d samples,\n- Simulated mosaics: total %d samples"%(self.name, self.__get_density_str(), len(self.natural_mosaics), num_simulated_tags)
+        if num_simulated_tags == 0:
+            s2 = ",\n"
+        else:
+            s2 = "\n"+"\n".join(["   %d samples in tag '%s',"%(len(self.simulated_mosaics[tag]), tag) for tag in self.simulated_mosaics])
+            s2 += "\n"
+        feature_keys = list(set(list(self.distributions.keys())+list(self.methods.keys())))
+        s3 = "- Features: %d"%len(feature_keys)
+        if len(feature_keys) == 0:
+            s3 += ".\n"
+        else:
+            s3 += "\n    \t Label\t| Has Method \t| Has Distribution \t| Has Target Probs \n"+"\n".join([self.__get_feature_str(key) for key in feature_keys])
+            s3 +=".\n"
+        return s1+s2+s3
+    
+    def __get_feature_str(self, feature_label):
+        return "   \t %s\t| %r \t| %r \t| %r "%(feature_label, feature_label in self.methods, feature_label in self.distributions, feature_label in self.distributions and self.distributions[feature_label].has_target())
+    
+    def __get_density_str(self):
+        if self.density is None:
+            return "Unknown"
+        else:
+            return "%.7f (cells/μm^2)"%(self.density)
+
     def clear_mosaics(self, with_natural: bool=False) -> None:
         self.simulated_mosaics = {SIMULATED_TAG: []}
         if with_natural:

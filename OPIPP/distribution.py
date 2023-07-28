@@ -1,5 +1,8 @@
 import numpy as np
 
+from typing import Callable, Union
+from .mosaic import Mosaic
+
 class Distribution:
     """ 
     Probability distribution of feature values
@@ -11,9 +14,6 @@ class Distribution:
 
     n_bin: int
         The number of bins in histogram.
-
-    target_probs: list or np.ndarray, optional(default=None)
-        The prorbabilities.
 
     min_value: float, optional(default=0.)
         The minimum value for bins in histogram.
@@ -38,18 +38,21 @@ class Distribution:
     sample_ri()
         Calculate the Regularity Index of values generated randomly.
     """
-    def __init__(self, max_value: float, n_bin: int=1, target_probs: list=None, min_value: float=0.):
+    def __init__(self, method: Union[Callable, str], max_value: float, n_bin: int=1, min_value: float=0.):
+        if type(method) == str and hasattr(Mosaic, method):
+            if callable(getattr(Mosaic, method)):
+                self.method = lambda mosaic: getattr(mosaic, method)()
+            else:
+                self.method = lambda mosaic: getattr(mosaic, method)
+        else:
+            self.method = method
+
         assert max_value > min_value
         self.max_value = max_value
         self.min_value = min_value
         self.n_bin = n_bin
         self.step = (max_value-min_value)/n_bin
-        self.target_probs = target_probs
-        if target_probs is not None:
-            assert len(target_probs) == n_bin+1
-            # make sure the correct calculation for KL distance
-            self.target_probs[self.target_probs<=0] = 1e-5 
-            self.target_probs /= self.target_probs.sum()
+        self.target_probs = None
 
     def __get_index(self, value: float) -> int:
         return min(int((value-self.min_value)/self.step), self.n_bin)
@@ -63,6 +66,9 @@ class Distribution:
     def has_target(self) -> bool:
         return self.target_probs is not None
 
+    def extract_feature(self, mosaic: Mosaic) -> list:
+        return np.array([self.method(mosaic)]).flatten().tolist()
+    
     def get_prob(self, value: float) -> float:
         return self.target_probs[self.__get_index(value)]
 

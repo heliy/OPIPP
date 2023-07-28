@@ -22,7 +22,6 @@ class Pattern:
         self.natural_mosaics = []
         self.simulated_mosaics = {SIMULATED_TAG: []}
         self.distributions = {}
-        self.methods = {}
 
     def __str__(self):
         num_simulated_tags = sum(list(len(i) for i in (self.simulated_mosaics.values())))
@@ -32,17 +31,19 @@ class Pattern:
         else:
             s2 = "\n"+"\n".join(["   %d case(s) in tag '%s',"%(len(self.simulated_mosaics[tag]), tag) for tag in self.simulated_mosaics])
             s2 += "\n"
-        feature_keys = list(set(list(self.distributions.keys())+list(self.methods.keys())))
+        feature_keys = list(self.distributions.keys())
         s3 = "- Features: %d"%len(feature_keys)
         if len(feature_keys) == 0:
             s3 += ".\n"
         else:
-            s3 += "\n    \t Label\t| Has Method \t| Has Distribution \t| Has Target Probs \n"+"\n".join([self.__get_feature_str(key) for key in feature_keys])
+            s3 += "\n    \t Label\t| Has target probabilities\n"
+            s3 +="\n".join([self.__get_feature_str(label, self.distributions[label]) 
+                            for label in self.distributions])
             s3 +=".\n"
         return s1+s2+s3
     
-    def __get_feature_str(self, feature_label):
-        return "   \t %s\t| %r \t| %r \t| %r "%(feature_label, feature_label in self.methods, feature_label in self.distributions, feature_label in self.distributions and self.distributions[feature_label].has_target())
+    def __get_feature_str(self, label: str, distribution: Distribution):
+        return "   \t %s\t| %r "%(label, distribution.has_target())
     
     def __get_density_str(self):
         if self.density is None:
@@ -137,19 +138,19 @@ class Pattern:
             total_area += mosaic.scope.get_area()
         return float(total_num / total_area)
     
-    def set_feature(self, feature_label: str, distribution: Distribution, feature_method: Callable=None) -> None:
+    def set_feature(self, feature_label: str, distribution: Distribution) -> None:
         self.distributions[feature_label] = distribution
-        self.methods[feature_label] = feature_method
 
     def estimate_feature(self, feature_label: str, natural: bool=True, simulated_tag: str=SIMULATED_TAG) -> np.ndarray:
-        assert feature_label in self.methods and self.methods[feature_label] is not None
+        assert feature_label in self.distributions
+        func = lambda mosaic: self.distributions[feature_label].extract_feature(mosaic)
         if natural:
             assert len(self.natural_mosaics) > 0
-            values = np.concatenate(list(self.methods[feature_label](mosaic) for mosaic 
+            values = np.concatenate(list(func(mosaic) for mosaic 
                                          in self.natural_mosaics)).flatten()
         else:
             assert len(self.simulated_mosaics) > 0
-            values = np.concatenate(list(self.methods[feature_label](mosaic) for mosaic 
+            values = np.concatenate(list(func(mosaic) for mosaic 
                                          in self.simulated_mosaics[simulated_tag])).flatten()
         hist = self.distributions[feature_label].get_hist(values).astype(float)
         hist /= hist.sum()
@@ -158,13 +159,13 @@ class Pattern:
     def get_useable_features(self) -> list:
         features = []
         for key in self.distributions:
-            if self.distributions[key].has_target() and self.methods[key] is not None:
+            if self.distributions[key].has_target():
                 features.append(key)
         return features 
     
     def __get_feature_values(self, mosaics: list, feature_label: str) -> np.ndarray:
-        method = self.methods[feature_label]
-        values = np.concatenate(list(method(mosaic) for mosaic in mosaics))
+        func = lambda mosaic: self.distributions[feature_label].extract_feature(mosaic)
+        values = np.concatenate(list(func(mosaic) for mosaic in mosaics))
         return values
     
     def __get_kl(self, mosaics: list, feature_label: str) -> float:
@@ -230,7 +231,7 @@ class Pattern:
             ax.set_title("Values of features: %s"%feature_label)
         plt.show()
         
-    def draw_value_bars(self, draw_loss: bool, feature_colors: dict, method: Callable=np.mean, 
+    def draw_value_bars(self, draw_loss: bool, feature_colors: dict, value_method: Callable=np.mean, 
                         draw_natural: bool=False, simulated_tags: list=[SIMULATED_TAG], **args) -> None:
         features = list(feature_colors.keys())
         if draw_loss:
@@ -245,7 +246,7 @@ class Pattern:
                     values = list(self.__get_kl([m], feature_label) for m in self.natural_mosaics)
                 else:
                     values = self.__get_feature_values(self.natural_mosaics, feature_label)
-                ys[i_feature].append(method(values))
+                ys[i_feature].append(value_method(values))
                 if i_feature == 0:
                     x_labels.append("natural")
             for tag in simulated_tags:
@@ -257,7 +258,7 @@ class Pattern:
                     values = list(self.__get_kl([m], feature_label) for m in self.simulated_mosaics[tag])
                 else:
                     values = self.__get_feature_values(self.simulated_mosaics[tag], feature_label)
-                ys[i_feature].append(method(values))
+                ys[i_feature].append(value_method(values))
         for i_feature in range(1, len(ys)):
             ys[i_feature] = np.array(ys[i_feature])
             ys[i_feature] += ys[i_feature-1]

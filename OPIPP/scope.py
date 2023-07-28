@@ -1,6 +1,9 @@
 from __future__ import annotations
 
 import numpy as np
+from matplotlib.patches import Rectangle
+from matplotlib.collections import PatchCollection
+import matplotlib.pyplot as plt
 
 class Scope:
     """ 
@@ -83,3 +86,18 @@ class Scope:
     
     def distance2boundary(self, point_x: float, point_y: float) -> float:
         return np.abs([point_x-self.min_x, point_x-self.max_x, point_y-self.min_y, point_y-self.max_y]).min()
+    
+    def view(self, edgecolor: str="k", facecolor: str="gray", alpha: float=0.5):
+        ax = plt.subplot()
+        rect = Rectangle((self.min_x, self.min_y), 
+                        self.max_x-self.min_x, self.max_y-self.min_y)
+        pc = PatchCollection([rect], facecolor=facecolor, 
+                            alpha=alpha, edgecolor=edgecolor)
+        ax.add_collection(pc)
+        ax.set_xlim(xmin=self.min_x-(self.max_x-self.min_x)/5, 
+                    xmax=self.max_x+(self.max_x-self.min_x)/5)
+        ax.set_ylim(ymin=self.min_y-(self.max_y-self.min_y)/5, 
+                    ymax=self.max_y+(self.max_y-self.min_y)/5)
+        plt.axis("scaled")
+        plt.show()
+        

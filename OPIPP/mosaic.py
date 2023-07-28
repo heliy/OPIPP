@@ -207,11 +207,11 @@ class Mosaic(nx.Graph):
     ########################################
 
     def draw_points(self, highlights: list=None, draw_grid: bool=True, grid: int=1, 
-                    nonhighlight_alpha: float=0.3, equal_aspect: bool=True,
+                    nonhighlight_alpha: float=0.3, ax_scaled: bool=True,
                     point_args: dict={"color": "r", "s": 5}) -> None:
         ax = plt.subplot()
-        if equal_aspect:
-            ax.set_aspect('equal')
+        if ax_scaled:
+            plt.axis('scaled')
         plt.scatter(self.points[:, 0], self.points[:, 1], alpha=nonhighlight_alpha, **point_args)
         if highlights is None:
             highlights = list(self.iter_effective_indices())
@@ -225,12 +225,12 @@ class Mosaic(nx.Graph):
         plt.show()
 
     def draw_neighbors(self, highlights: list=None, grid: int=1, 
-                       nonhighlight_alpha: float=0.3, equal_aspect: bool=True,
+                       nonhighlight_alpha: float=0.3, ax_scaled: bool=True,
                        point_args={"s": 5, "color": "r"}, 
                        edge_args={"lw": 0.5, "color": "gray"}) -> None:
         ax = plt.subplot()
-        if equal_aspect:
-            ax.set_aspect('equal')
+        if ax_scaled:
+            plt.axis('scaled')
         plt.scatter(self.points[:, 0], self.points[:, 1], alpha=nonhighlight_alpha, **point_args)
         if highlights is None:
             highlights = list(self.iter_effective_indices())
@@ -246,12 +246,12 @@ class Mosaic(nx.Graph):
         plt.show()
 
     def draw_nn_graph(self, highlights: list=None, grid: int=1, 
-                        nonhighlight_alpha: float=0.3, equal_aspect: bool=True,
+                        nonhighlight_alpha: float=0.3, ax_scaled: bool=True,
                         network_args={"edge_color": "k", "node_size": 0, "with_labels": False}, 
                         points_args={"color": "r", "s": 5}) -> None:
         ax = plt.subplot()
-        if equal_aspect:
-            ax.set_aspect('equal')
+        if ax_scaled:
+            plt.axis('scaled')
         if highlights is None:
             highlights = list(self.iter_effective_indices())
         nn_graph = self.get_nn_graph(nodes=highlights)
@@ -266,12 +266,12 @@ class Mosaic(nx.Graph):
         plt.show()
 
     def draw_vorareas(self, highlights: list=None, nonhighlight_alpha: float=0.3, 
-                      equal_aspect: bool=True, region_args={"color": "gray", "alpha": 0.5},
+                      ax_scaled: bool=True, region_args={"color": "gray", "alpha": 0.5},
                       voronoi_args={"show_points": False, "line_width": 0.5},
                       node_args={"color": "r", "s": 10}) -> None:
         ax = plt.subplot()
-        if equal_aspect:
-            ax.set_aspect('equal')
+        if ax_scaled:
+            plt.axis('scaled')
         if highlights is None:
             highlights = list(self.iter_effective_indices())
         vor = self.extended_vor

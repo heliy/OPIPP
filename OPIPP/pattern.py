@@ -64,11 +64,23 @@ class Pattern:
     def add_natural_mosaic(self, mosaic: Mosaic) -> None:
         self.natural_mosaics.append(mosaic)
 
+    def get_natural_mosaic(self, index: int, tag: str=SIMULATED_TAG) -> Mosaic:
+        if index >= len(self.natural_mosaics):
+            return None
+        return self.natural_mosaics[index]
+
     def add_simulated_mosaic(self, mosaic: Mosaic, tag: str=SIMULATED_TAG) -> None:
         if tag in self.simulated_mosaics:
             self.simulated_mosaics[tag].append(mosaic)
         else:
             self.simulated_mosaics[tag] = [mosaic]
+
+    def get_simulated_mosaic(self, index: int, tag: str=SIMULATED_TAG) -> Mosaic:
+        if tag not in self.simulated_mosaics:
+            return None
+        if index >= len(self.simulated_mosaics[tag]):
+            return None
+        return self.simulated_mosaics[tag][index]
 
     def load_from_files(self, fnames: list, scope: Scope, is_natural: bool=True, 
                         simulated_tag: str=SIMULATED_TAG) -> list:

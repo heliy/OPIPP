@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib.pyplot as plt
 
 from typing import Callable, Union
 from .mosaic import Mosaic
@@ -97,3 +98,21 @@ class Distribution:
     def sample_RI(self, n_sample: int=50000) -> float:
         values = self.sample_values(n_sample)
         return values.mean()/values.std()
+    
+    def view(self, ax: plt.Axes=None, **bar_args) -> None:
+        if not self.has_target():
+            return
+        centers = self.get_value_centers()
+        width = centers[1]-centers[0]
+        bar_args.setdefault("width", width)
+        bar_args.setdefault("alpha", 0.5)
+        bar_args.setdefault("color", "gray")
+        bar_args.setdefault("align", "center")
+        if ax is None:
+            my_ax = plt.subplot()
+        else:
+            my_ax = ax
+        my_ax.bar(centers, self.target_probs, **bar_args)
+        my_ax.set_ylabel("Frequency")
+        if ax is None:
+            plt.show()

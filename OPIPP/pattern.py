@@ -187,32 +187,40 @@ class Pattern:
 
     def draw_feature_hist(self, feature_label: str, natural_color: str="skyblue", 
                           target_color: str="gray", simulated_color: str="red", simulated_tag: str=SIMULATED_TAG,
-                          **args) -> None:
+                          ax: plt.Axes=None, **bar_args) -> None:
         distribution = self.distributions[feature_label]
         centers = distribution.get_value_centers()
         width = centers[1]-centers[0]
-        ax = plt.subplot()
+        bar_args.setdefault("width", width)
+        bar_args.setdefault("alpha", 0.5)
+        bar_args.setdefault("align", "center")
+        bar_args.pop("color", None)
+        if ax is None:
+            my_ax = plt.subplot()
+        else:
+            my_ax = ax
         if natural_color is not None and len(self.natural_mosaics) > 0:
             natural_probs = self.estimate_feature(feature_label, natural=True)
-            plt.bar(centers, natural_probs, color=natural_color, label="natural", align="center", alpha=0.4, width=width, **args)
+            my_ax.bar(centers, natural_probs, color=natural_color, label="natural", **bar_args)
         if target_color is not None and distribution.has_target():
-            plt.bar(centers, distribution.target_probs, color=target_color, label="Target", align="center", alpha=0.4, width=width, **args)
+            my_ax.bar(centers, distribution.target_probs, color=target_color, label="Target", **bar_args)
         if simulated_color is not None and len(self.simulated_mosaics[simulated_tag]) > 0:
             simulated_probs = self.estimate_feature(feature_label, natural=False, simulated_tag=simulated_tag)
-            plt.bar(centers, simulated_probs, color=simulated_color, label="Simulated: %s"%simulated_tag, align="center", alpha=0.4, width=width, **args)            
-        plt.legend()
-        ax.set_ylabel("Frequency")
-        ax.set_title("Feature: %s"%feature_label)
-        plt.show()
+            my_ax.bar(centers, simulated_probs, color=simulated_color, label="Simulated: %s"%simulated_tag, **bar_args)            
+        my_ax.legend()
+        my_ax.set_ylabel("Frequency")
+        my_ax.set_title("Feature: %s"%feature_label)
+        if ax is None:
+            plt.show()
 
-    def draw_values_box(self, draw_loss: bool, feature_label: str, draw_natural: bool=False, 
-                        simulated_tags: list=[SIMULATED_TAG], **args) -> None:
-        if draw_loss:
+    def draw_values_boxes(self, feature_label: str=None, draw_natural: bool=False, 
+                        simulated_tags: list=[SIMULATED_TAG], ax: plt.Axes=None, **box_args) -> None:
+        if feature_label is None:
             assert self.distributions[feature_label].has_target()
         x_labels = []
         ys = []
         if draw_natural and len(self.natural_mosaics) > 0:
-            if draw_loss:
+            if feature_label is None:
                 values = list(self.__get_kl([m], feature_label) for m in self.natural_mosaics)
             else:
                 values = self.__get_feature_values(self.natural_mosaics, feature_label)
@@ -221,22 +229,26 @@ class Pattern:
         for tag in simulated_tags:
             if tag not in self.simulated_mosaics:
                 continue
-            if draw_loss:
+            if feature_label is None:
                 values = list(self.__get_kl([m], feature_label) for m in self.simulated_mosaics[tag])
             else:
                 values = self.__get_feature_values(self.simulated_mosaics[tag], feature_label)
             x_labels.append("Simulated: %s"%tag)
             ys.append(values)
-        ax = plt.subplot()
-        plt.boxplot(ys, vert=True, patch_artist=True, labels=x_labels, **args)
-        if draw_loss:
-            ax.set_title("KL divergency of features: %s"%feature_label)
+        if ax is None:
+            my_ax = plt.subplot()
         else:
-            ax.set_title("Values of features: %s"%feature_label)
-        plt.show()
+            my_ax = ax
+        my_ax.boxplot(ys, vert=True, patch_artist=True, labels=x_labels, **box_args)
+        if feature_label is None:
+            my_ax.set_title("KL divergency of features: %s"%feature_label)
+        else:
+            my_ax.set_title("Values of features: %s"%feature_label)
+        if ax is None:
+            plt.show()
         
-    def draw_value_bars(self, draw_loss: bool, feature_colors: dict, value_method: Callable=np.mean, 
-                        draw_natural: bool=False, simulated_tags: list=[SIMULATED_TAG], **args) -> None:
+    def draw_values_bars(self, draw_loss: bool, feature_colors: dict=None, value_method: Callable=np.mean, 
+                        draw_natural: bool=False, simulated_tags: list=[SIMULATED_TAG], ax: plt.Axes=None, **bar_args) -> None:
         features = list(feature_colors.keys())
         if draw_loss:
             for label in feature_colors:
@@ -266,18 +278,22 @@ class Pattern:
         for i_feature in range(1, len(ys)):
             ys[i_feature] = np.array(ys[i_feature])
             ys[i_feature] += ys[i_feature-1]
-        ax = plt.subplot()
-        for i_feature, feature_label in enumerate(features[::-1]):
-            plt.bar(range(len(x_labels)), ys[len(features)-i_feature-1], label=feature_label, **args)
-        print(x_labels)
-        ax.set_xticks(range(len(x_labels)))
-        ax.set_xticklabels(x_labels)
-        if draw_loss:
-            ax.set_title("KL divergency of features: %s"%", ".join(features))
+        if ax is None:
+            my_ax = plt.subplot()
         else:
-            ax.set_title("Values of features: %s"%", ".join(features))
-        plt.legend()
-        plt.show()
+            my_ax = ax
+        bar_args.pop("color", None)
+        for i_feature, feature_label in enumerate(features[::-1]):
+            my_ax.bar(range(len(x_labels)), ys[len(features)-i_feature-1], label=feature_label, color=feature_colors[feature_label], **bar_args)
+        my_ax.set_xticks(range(len(x_labels)))
+        my_ax.set_xticklabels(x_labels)
+        if draw_loss:
+            my_ax.set_title("KL divergency of features: %s"%", ".join(features))
+        else:
+            my_ax.set_title("Values of features: %s"%", ".join(features))
+        my_ax.legend()
+        if ax is None:
+            plt.show()
 
     ########################################
     #

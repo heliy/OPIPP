@@ -71,7 +71,7 @@ class Distribution:
         return np.array([self.method(mosaic)]).flatten()
     
     def extract_mosaics(self, mosaics: list) -> list:
-        values = np.concatenate(list(np.array([self.method(mosaic)]) for mosaic in mosaics))
+        values = np.concatenate(list(self.extract_mosaic(mosaic) for mosaic in mosaics))
         return values.flatten()
     
     def get_prob(self, value: float) -> float:

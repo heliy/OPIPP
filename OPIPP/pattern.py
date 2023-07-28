@@ -88,11 +88,11 @@ class Pattern:
             self.simulated_mosaics[simulated_tag] = None
         else:
             pass
-        
-    def load_from_files(self, fnames: list, scope: Scope, is_natural: bool=True, 
+
+    def load_from_files(self, point_fnames: list, scope: Scope, is_natural: bool=True, 
                         simulated_tag: str=SIMULATED_TAG) -> list:
         mosaics = []
-        for fname in fnames:
+        for fname in point_fnames:
             if fname[-4:] == ".npy":
                 points = np.load(fname)
             else:

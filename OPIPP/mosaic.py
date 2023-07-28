@@ -102,7 +102,7 @@ class Mosaic(nx.Graph):
 
     def get_boundary_indices(self) -> np.ndarray:
         """ Gets indices of boundary points """
-        in_surrounds = np.arange(self.points.shape[0])[1-self.get_effective_filter()]
+        in_surrounds = np.arange(self.points.shape[0])[(1-self.get_effective_filter()).astype(bool)]
         return in_surrounds
     
     def get_effective_indices(self) -> np.ndarray:
@@ -213,83 +213,99 @@ class Mosaic(nx.Graph):
 
     def draw_points(self, highlights: list=None, draw_grid: bool=True, grid: int=1, 
                     nonhighlight_alpha: float=0.3, ax_scaled: bool=True,
-                    point_args: dict={"color": "r", "s": 5}) -> None:
-        ax = plt.subplot()
+                    point_args: dict={"color": "r", "s": 5}, ax: plt.Axes=None) -> None:
+        if ax is None:
+            my_ax = plt.subplot()
+        else:
+            my_ax = ax
         if ax_scaled:
-            plt.axis('scaled')
-        plt.scatter(self.points[:, 0], self.points[:, 1], alpha=nonhighlight_alpha, **point_args)
+            my_ax.axis('scaled')
+        my_ax.scatter(self.points[:, 0], self.points[:, 1], alpha=nonhighlight_alpha, **point_args)
         if highlights is None:
             highlights = list(self.iter_effective_indices())
-        plt.scatter(self.points[highlights][:, 0], self.points[highlights][:, 1], alpha=1.0, **point_args)
-        ax.set_xticks(np.linspace(self.scope.min_x, self.scope.max_x, grid+1))
-        ax.set_yticks(np.linspace(self.scope.min_y, self.scope.max_y, grid+1))
-        ax.set_xlim([self.scope.min_x, self.scope.max_x])
-        ax.set_ylim([self.scope.min_y, self.scope.max_y])
-        ax.tick_params(left=True, bottom=True, labelleft=True, labelbottom=True)
-        plt.grid(draw_grid)
-        plt.show()
+        my_ax.scatter(self.points[highlights][:, 0], self.points[highlights][:, 1], alpha=1.0, **point_args)
+        my_ax.set_xticks(np.linspace(self.scope.min_x, self.scope.max_x, grid+1))
+        my_ax.set_yticks(np.linspace(self.scope.min_y, self.scope.max_y, grid+1))
+        my_ax.set_xlim([self.scope.min_x, self.scope.max_x])
+        my_ax.set_ylim([self.scope.min_y, self.scope.max_y])
+        my_ax.tick_params(left=True, bottom=True, labelleft=True, labelbottom=True)
+        my_ax.grid(draw_grid)
+        if ax is None:
+            plt.show()
 
     def draw_neighbors(self, highlights: list=None, grid: int=1, 
                        nonhighlight_alpha: float=0.3, ax_scaled: bool=True,
                        point_args={"s": 5, "color": "r"}, 
-                       edge_args={"lw": 0.5, "color": "gray"}) -> None:
-        ax = plt.subplot()
+                       edge_args={"lw": 0.5, "color": "gray"}, ax: plt.Axes=None) -> None:
+        if ax is None:
+            my_ax = plt.subplot()
+        else:
+            my_ax = ax
         if ax_scaled:
-            plt.axis('scaled')
-        plt.scatter(self.points[:, 0], self.points[:, 1], alpha=nonhighlight_alpha, **point_args)
+            my_ax.axis('scaled')
+        my_ax.scatter(self.points[:, 0], self.points[:, 1], alpha=nonhighlight_alpha, **point_args)
         if highlights is None:
             highlights = list(self.iter_effective_indices())
-        plt.scatter(self.points[highlights][:, 0], self.points[highlights][:, 1], alpha=1.0, **point_args)
-        ax.set_xticks(np.linspace(self.scope.min_x, self.scope.max_x, grid+1))
-        ax.set_yticks(np.linspace(self.scope.min_y, self.scope.max_y, grid+1))
-        ax.set_xlim([self.scope.min_x, self.scope.max_x])
-        ax.set_ylim([self.scope.min_y, self.scope.max_y])
-        ax.tick_params(left=True, bottom=True, labelleft=True, labelbottom=True)
+        my_ax.scatter(self.points[highlights][:, 0], self.points[highlights][:, 1], alpha=1.0, **point_args)
+        my_ax.set_xticks(np.linspace(self.scope.min_x, self.scope.max_x, grid+1))
+        my_ax.set_yticks(np.linspace(self.scope.min_y, self.scope.max_y, grid+1))
+        my_ax.set_xlim([self.scope.min_x, self.scope.max_x])
+        my_ax.set_ylim([self.scope.min_y, self.scope.max_y])
+        my_ax.tick_params(left=True, bottom=True, labelleft=True, labelbottom=True)
         for edge in self.edges:
-            ax.plot([self.points[edge[0], 0], self.points[edge[1], 0]],
-                    [self.points[edge[0], 1], self.points[edge[1], 1]], **edge_args)
-        plt.show()
+            my_ax.plot([self.points[edge[0], 0], self.points[edge[1], 0]],
+                       [self.points[edge[0], 1], self.points[edge[1], 1]], **edge_args)
+        if ax is None:
+            plt.show()
 
     def draw_nn_graph(self, highlights: list=None, grid: int=1, 
                         nonhighlight_alpha: float=0.3, ax_scaled: bool=True,
                         network_args={"edge_color": "k", "node_size": 0, "with_labels": False}, 
-                        points_args={"color": "r", "s": 5}) -> None:
-        ax = plt.subplot()
+                        points_args={"color": "r", "s": 5}, ax: plt.Axes=None) -> None:
+        if ax is None:
+            my_ax = plt.subplot()
+        else:
+            my_ax = ax
         if ax_scaled:
-            plt.axis('scaled')
+            my_ax.axis('scaled')
         if highlights is None:
             highlights = list(self.iter_effective_indices())
         nn_graph = self.get_nn_graph(nodes=highlights)
-        nx.draw_networkx(nn_graph, pos=self.points, **network_args)
-        plt.scatter(self.points[:, 0], self.points[:, 1], alpha=nonhighlight_alpha, **points_args)
-        plt.scatter(self.points[highlights][:, 0], self.points[highlights][:, 1], alpha=1.0, **points_args)
-        ax.set_xticks(np.linspace(self.scope.min_x, self.scope.max_x, grid+1))
-        ax.set_yticks(np.linspace(self.scope.min_y, self.scope.max_y, grid+1))
-        ax.set_xlim([self.scope.min_x, self.scope.max_x])
-        ax.set_ylim([self.scope.min_y, self.scope.max_y])
-        ax.tick_params(left=True, bottom=True, labelleft=True, labelbottom=True)
-        plt.show()
+        nx.draw_networkx(nn_graph, pos=self.points, ax=my_ax, **network_args)
+        my_ax.scatter(self.points[:, 0], self.points[:, 1], alpha=nonhighlight_alpha, **points_args)
+        my_ax.scatter(self.points[highlights][:, 0], self.points[highlights][:, 1], alpha=1.0, **points_args)
+        my_ax.set_xticks(np.linspace(self.scope.min_x, self.scope.max_x, grid+1))
+        my_ax.set_yticks(np.linspace(self.scope.min_y, self.scope.max_y, grid+1))
+        my_ax.set_xlim([self.scope.min_x, self.scope.max_x])
+        my_ax.set_ylim([self.scope.min_y, self.scope.max_y])
+        my_ax.tick_params(left=True, bottom=True, labelleft=True, labelbottom=True)
+        if ax is None:
+            plt.show()
 
     def draw_vorareas(self, highlights: list=None, nonhighlight_alpha: float=0.3, 
                       ax_scaled: bool=True, region_args={"color": "gray", "alpha": 0.5},
                       voronoi_args={"show_points": False, "line_width": 0.5},
-                      node_args={"color": "r", "s": 10}) -> None:
-        ax = plt.subplot()
+                      node_args={"color": "r", "s": 10}, ax: plt.Axes=None) -> None:
+        if ax is None:
+            my_ax = plt.subplot()
+        else:
+            my_ax = ax
         if ax_scaled:
-            plt.axis('scaled')
+            my_ax.axis('scaled')
         if highlights is None:
             highlights = list(self.iter_effective_indices())
         vor = self.extended_vor
         for rindex in vor.point_region[:self.get_points_n()]:
             polygon = [vor.vertices[i] for i in vor.regions[rindex]]
-            ax.fill(*zip(*polygon), **region_args)
-        voronoi_plot_2d(vor, ax=ax, **voronoi_args)
+            my_ax.fill(*zip(*polygon), **region_args)
+        voronoi_plot_2d(vor, ax=my_ax, **voronoi_args)
 
         p_indices = list(self.iter_effective_indices())
-        ax.scatter(self.points[:, 0], self.points[:, 1], alpha=nonhighlight_alpha, **node_args)
-        ax.scatter(self.points[p_indices][:, 0], self.points[p_indices][:, 1], alpha=1.0, **node_args)
-        plt.xlim([self.scope.min_x, self.scope.max_x])
-        plt.ylim([self.scope.min_y, self.scope.max_y])
+        my_ax.scatter(self.points[:, 0], self.points[:, 1], alpha=nonhighlight_alpha, **node_args)
+        my_ax.scatter(self.points[p_indices][:, 0], self.points[p_indices][:, 1], alpha=1.0, **node_args)
+        my_ax.xlim([self.scope.min_x, self.scope.max_x])
+        my_ax.ylim([self.scope.min_y, self.scope.max_y])
         ax.tick_params(left=True, bottom=True, labelleft=True, labelbottom=True)
-        plt.show()
+        if ax is None:
+            plt.show()
     

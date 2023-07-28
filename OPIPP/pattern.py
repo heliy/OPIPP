@@ -89,7 +89,7 @@ class Pattern:
             mosaics.append(mosaic)
         return mosaics
 
-    def dump_to_files(self, prefix: str, ext: str="points", is_natural: bool=True, split: bool=False, 
+    def dump_to_files(self, prefix: str, ext: str="points", is_natural: bool=True, separate: bool=False, 
                       simulated_tag: str=SIMULATED_TAG) -> None:
         if is_natural:
             mosaics = self.natural_mosaics
@@ -97,7 +97,7 @@ class Pattern:
             mosaics = self.simulated_mosaics[simulated_tag]
         for i, mosaic in enumerate(mosaics):
             fname = "%s-%d.%s"%(prefix, i, ext)
-            mosaic.save(fname, split=split)
+            mosaic.save(fname, separate=separate)
 
     ########################################
     #

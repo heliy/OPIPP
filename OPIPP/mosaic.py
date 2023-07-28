@@ -66,8 +66,8 @@ class Mosaic(nx.Graph):
     def get_points_n(self) -> int:
         return self.points.shape[0]
 
-    def save(self, fname: str, split: bool=False) -> None:
-        if split:
+    def save(self, fname: str, separate: bool=False) -> None:
+        if separate:
             cons = fname.split(".")
             pre_name = ".".join(cons[:-1])
             np.savetxt("%s-x.%s"%(pre_name, cons[-1]), self.points[:, 0], fmt="%f")

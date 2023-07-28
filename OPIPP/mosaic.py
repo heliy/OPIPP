@@ -105,6 +105,11 @@ class Mosaic(nx.Graph):
         in_surrounds = np.arange(self.points.shape[0])[1-self.get_effective_filter()]
         return in_surrounds
     
+    def get_effective_indices(self) -> np.ndarray:
+        """ Gets indices of effective points """
+        effectives = np.arange(self.points.shape[0])[self.get_effective_filter()]
+        return effectives
+    
     ########################################
     #
     # Feature-related methods

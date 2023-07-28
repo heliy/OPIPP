@@ -26,11 +26,11 @@ class Pattern:
 
     def __str__(self):
         num_simulated_tags = sum(list(len(i) for i in (self.simulated_mosaics.values())))
-        s1 = "Spatial pattern of %s, \n- Density: %s,\n- Natural mosaics: %d samples,\n- Simulated mosaics: total %d samples"%(self.name, self.__get_density_str(), len(self.natural_mosaics), num_simulated_tags)
+        s1 = "Spatial pattern of %s, \n- Density: %s,\n- Natural mosaics: %d case(s),\n- Simulated mosaics: total %d case(s)"%(self.name, self.__get_density_str(), len(self.natural_mosaics), num_simulated_tags)
         if num_simulated_tags == 0:
             s2 = ",\n"
         else:
-            s2 = "\n"+"\n".join(["   %d samples in tag '%s',"%(len(self.simulated_mosaics[tag]), tag) for tag in self.simulated_mosaics])
+            s2 = "\n"+"\n".join(["   %d case(s) in tag '%s',"%(len(self.simulated_mosaics[tag]), tag) for tag in self.simulated_mosaics])
             s2 += "\n"
         feature_keys = list(set(list(self.distributions.keys())+list(self.methods.keys())))
         s3 = "- Features: %d"%len(feature_keys)

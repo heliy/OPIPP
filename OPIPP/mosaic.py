@@ -154,6 +154,10 @@ class Mosaic(nx.Graph):
             area = get_poly_area(region[:, 0], region[:, 1])
             return area
         return self.__get_features(feauture_func=vorarea_func, indices=indices, effective_filter=effective_filter)
+    
+    def VDRI(self) -> float:
+        values = self.get_vorareas(indices=None, effective_filter=True)
+        return np.mean(values)/np.std(values)        
 
     def find_neighbors(self, p_index: int, effective_only=False) -> list:
         neighbors = list(self.neighbors(p_index))
@@ -201,6 +205,10 @@ class Mosaic(nx.Graph):
             _, nn_distance = self.find_nearest_neighbor(index)
             return nn_distance
         return self.__get_features(feauture_func=nn_func, indices=indices, effective_filter=effective_filter)
+    
+    def NNRI(self) -> float:
+        values = self.get_nns(indices=None, effective_filter=True)
+        return np.mean(values)/np.std(values)        
 
     def get_distances(self, indices: list=None)-> np.ndarray:
         """ Gets distances of edges related to given cells, all edges if not specific """

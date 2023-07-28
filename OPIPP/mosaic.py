@@ -110,6 +110,10 @@ class Mosaic(nx.Graph):
         effectives = np.arange(self.points.shape[0])[self.get_effective_filter()]
         return effectives
     
+    def get_random_indices(self, n: int=1) -> np.ndarray:
+        return np.random.choice(self.get_points_n(), size=max(n, self.get_points_n()), 
+                                replace=False)
+    
     ########################################
     #
     # Feature-related methods

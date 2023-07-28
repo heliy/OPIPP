@@ -59,15 +59,19 @@ class Distribution:
     
     def set_target(self, target_probs: list) -> None:
         assert len(target_probs) == self.n_bin+1
-        self.target_probs = np.copy(target_probs)
+        self.target_probs = np.copy(target_probs).astype(float)
         self.target_probs[self.target_probs<=0] = 1e-5 
         self.target_probs /= self.target_probs.sum()
 
     def has_target(self) -> bool:
         return self.target_probs is not None
 
-    def extract_feature(self, mosaic: Mosaic) -> list:
-        return np.array([self.method(mosaic)]).flatten().tolist()
+    def extract_mosaic(self, mosaic: Mosaic) -> np.ndarray:
+        return np.array([self.method(mosaic)]).flatten()
+    
+    def extract_mosaics(self, mosaics: list) -> list:
+        values = np.concatenate(list(np.array([self.method(mosaic)]) for mosaic in mosaics))
+        return values.flatten()
     
     def get_prob(self, value: float) -> float:
         return self.target_probs[self.__get_index(value)]
@@ -90,6 +94,6 @@ class Distribution:
         centers = np.random.choice(self.get_value_centers(), p=self.target_probs, size=n)
         return (np.random.rand(n)-0.5)*self.step+centers
 
-    def sample_ri(self, n_sample: int=50000) -> float:
+    def sample_RI(self, n_sample: int=50000) -> float:
         values = self.sample_values(n_sample)
         return values.mean()/values.std()

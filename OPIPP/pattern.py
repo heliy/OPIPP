@@ -143,18 +143,24 @@ class Pattern:
 
     def estimate_feature(self, feature_label: str, natural: bool=True, simulated_tag: str=SIMULATED_TAG) -> np.ndarray:
         assert feature_label in self.distributions
-        func = lambda mosaic: self.distributions[feature_label].extract_feature(mosaic)
         if natural:
             assert len(self.natural_mosaics) > 0
-            values = np.concatenate(list(func(mosaic) for mosaic 
-                                         in self.natural_mosaics)).flatten()
+            values = self.__get_feature_values(self.natural_mosaics, feature_label)
         else:
-            assert len(self.simulated_mosaics) > 0
-            values = np.concatenate(list(func(mosaic) for mosaic 
-                                         in self.simulated_mosaics[simulated_tag])).flatten()
+            assert len(self.simulated_mosaics[simulated_tag]) > 0
+            values = self.__get_feature_values(self.simulated_mosaics[simulated_tag], feature_label)
         hist = self.distributions[feature_label].get_hist(values).astype(float)
         hist /= hist.sum()
         return hist
+    
+    def set_feature_target(self, feature_label: str) -> None:
+        if feature_label not in self.distributions:
+            return None
+        if len(self.natural_mosaics) == 0:
+            return None
+        probs = self.estimate_feature(feature_label=feature_label, natural=True)
+        self.distributions[feature_label].set_target(probs)
+        return probs
 
     def get_useable_features(self) -> list:
         features = []
@@ -164,12 +170,10 @@ class Pattern:
         return features 
     
     def __get_feature_values(self, mosaics: list, feature_label: str) -> np.ndarray:
-        func = lambda mosaic: self.distributions[feature_label].extract_feature(mosaic)
-        values = np.concatenate(list(func(mosaic) for mosaic in mosaics))
-        return values
+        return self.distributions[feature_label].extract_mosaics(mosaics)
     
     def __get_kl(self, mosaics: list, feature_label: str) -> float:
-        values = self.__get_feature_values(mosaics=mosaics, feature_label=feature_label)
+        values = self.__get_feature_values(mosaics, feature_label)
         return self.distributions[feature_label].KL(values)
     
     def evaluate(self, mosaics: list, features: list) -> float:

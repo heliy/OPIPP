@@ -50,11 +50,6 @@ class Pattern:
         else:
             return "%.7f (cells/μm^2)"%(self.density)
 
-    def clear_mosaics(self, with_natural: bool=False) -> None:
-        self.simulated_mosaics = {SIMULATED_TAG: []}
-        if with_natural:
-            self.natural_mosaics = []
-
     ########################################
     #
     # Load & Save
@@ -82,6 +77,18 @@ class Pattern:
             return None
         return self.simulated_mosaics[tag][index]
 
+    def remove_mosaics(self, with_natural: bool=False, simulated_tag: str=SIMULATED_TAG) -> None:
+        if with_natural:
+            self.natural_mosaics = []
+        if simulated_tag is None:
+            self.simulated_mosaics = {SIMULATED_TAG: []}
+        elif simulated_tag == SIMULATED_TAG:
+            self.simulated_mosaics[SIMULATED_TAG] = []
+        elif simulated_tag in self.simulated_mosaics:
+            self.simulated_mosaics[simulated_tag] = None
+        else:
+            pass
+        
     def load_from_files(self, fnames: list, scope: Scope, is_natural: bool=True, 
                         simulated_tag: str=SIMULATED_TAG) -> list:
         mosaics = []

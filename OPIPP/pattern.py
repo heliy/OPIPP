@@ -187,7 +187,7 @@ class Pattern:
 
     def draw_feature_hist(self, feature_label: str, natural_color: str="skyblue", 
                           target_color: str="gray", simulated_color: str="red", simulated_tag: str=SIMULATED_TAG,
-                          ax: plt.Axes=None, **bar_args) -> None:
+                          bar_args: dict={}, ax: plt.Axes=None) -> None:
         distribution = self.distributions[feature_label]
         centers = distribution.get_value_centers()
         width = centers[1]-centers[0]
@@ -213,10 +213,13 @@ class Pattern:
         if ax is None:
             plt.show()
 
-    def draw_values_boxes(self, feature_label: str=None, draw_natural: bool=False, 
-                        simulated_tags: list=[SIMULATED_TAG], ax: plt.Axes=None, **box_args) -> None:
+    def draw_feature_boxes(self, feature_label: str=None, 
+                        draw_natural: bool=False, 
+                        simulated_tags: list=None, box_args: dict={}, ax: plt.Axes=None) -> None:
         if feature_label is None:
             assert self.distributions[feature_label].has_target()
+        if simulated_tags is None:
+            simulated_tags = [i for i in self.simulated_mosaics.keys() if len(self.simulated_mosaics[i]) > 0]
         x_labels = []
         ys = []
         if draw_natural and len(self.natural_mosaics) > 0:
@@ -247,8 +250,16 @@ class Pattern:
         if ax is None:
             plt.show()
         
-    def draw_values_bars(self, draw_loss: bool, feature_colors: dict=None, value_method: Callable=np.mean, 
-                        draw_natural: bool=False, simulated_tags: list=[SIMULATED_TAG], ax: plt.Axes=None, **bar_args) -> None:
+    def draw_value_bars(self, value_method: Callable,
+                        feature_colors: dict, 
+                        draw_loss: bool=True,  
+                        draw_natural: bool=False, 
+                        simulated_tags: list=None, 
+                        bar_args: dict={},
+                        ax: plt.Axes=None) -> None:
+        if simulated_tags is None:
+            simulated_tags = [i for i in self.simulated_mosaics.keys() if len(self.simulated_mosaics[i]) > 0]
+        bar_args.pop("color", None)
         features = list(feature_colors.keys())
         if draw_loss:
             for label in feature_colors:

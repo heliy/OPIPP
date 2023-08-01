@@ -99,7 +99,7 @@ class Distribution:
         values = self.sample_values(n_sample)
         return values.mean()/values.std()
     
-    def view(self, ax: plt.Axes=None, **bar_args) -> None:
+    def view(self, bar_args: dict={}, ax: plt.Axes=None) -> None:
         if not self.has_target():
             return
         centers = self.get_value_centers()

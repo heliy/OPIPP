@@ -136,7 +136,7 @@ class Mosaic(nx.Graph):
                 values.append(feature)
         return values
 
-    def get_vorareas(self, indices: np.ndarray=None, effective_filter: bool=True) -> list:
+    def get_vorareas(self, indices: np.ndarray=None, effective_filter: bool=True) -> np.ndarray:
         """ 
         get values of voronoi areas
         
@@ -189,7 +189,7 @@ class Mosaic(nx.Graph):
             graph.add_edge(node, nn_neighbor)
         return graph
 
-    def get_nns(self, indices: np.ndarray=None, effective_filter: bool=True) -> list:
+    def get_nns(self, indices: np.ndarray=None, effective_filter: bool=True) -> np.ndarray:
         """ 
         get values of nearest neighbor distances
         
@@ -279,7 +279,7 @@ class Mosaic(nx.Graph):
     def draw_nn_graph(self, highlights: list=None, nonhighlight_alpha: float=0.3, 
                       ax_grid: int=1, draw_plane_grid: bool=False, ax_scaled: bool=True,
                       point_args: dict={"s": 5, "color": "r"}, 
-                      network_args: dict={"edge_color": "k", "node_size": 0, "with_labels": False}, 
+                      network_args: dict={"edge_color": "k", "with_labels": False}, 
                       ax: plt.Axes=None) -> None:
         if ax is None:
             my_ax = plt.subplot()
@@ -289,10 +289,13 @@ class Mosaic(nx.Graph):
             my_ax.axis('scaled')
         if highlights is None:
             highlights = list(self.iter_effective_indices())
+        network_args.setdefault("node_size", 0)
         nn_graph = self.get_nn_graph(p_indices=highlights)
+        highlight_alpha = point_args.pop("alpha", 1.0)
+        nonhighlight_alpha *= highlight_alpha
         nx.draw_networkx(nn_graph, pos=self.points, ax=my_ax, **network_args)
         my_ax.scatter(self.points[:, 0], self.points[:, 1], alpha=nonhighlight_alpha, **point_args)
-        my_ax.scatter(self.points[highlights][:, 0], self.points[highlights][:, 1], alpha=1.0, **point_args)
+        my_ax.scatter(self.points[highlights][:, 0], self.points[highlights][:, 1], alpha=highlight_alpha, **point_args)
         my_ax.set_xticks(np.linspace(self.scope.min_x, self.scope.max_x, ax_grid+1))
         my_ax.set_yticks(np.linspace(self.scope.min_y, self.scope.max_y, ax_grid+1))
         my_ax.set_xlim([self.scope.min_x, self.scope.max_x])
@@ -303,11 +306,12 @@ class Mosaic(nx.Graph):
         if ax is None:
             plt.show()
 
-    def draw_vorareas(self, highlights: list=None, nonhighlight_alpha: float=0.3, 
-                      ax_grid: int=1, ax_scaled: bool=True, 
-                      plane_args: dict={"facecolor": "gray", "alpha": 0.3},
-                      voronoi_args: dict={"show_points": False, "line_width": 0.5},
-                      point_args: dict={"color": "r", "s": 10}, ax: plt.Axes=None) -> None:
+    def draw_vds(self, highlights: list=None, nonhighlight_alpha: float=0.3, 
+                 ax_grid: int=1, ax_scaled: bool=True, 
+                 plane_args: dict={"facecolor": "gray", "alpha": 0.3},
+                 voronoi_args: dict={"show_points": False, "line_width": 0.5},
+                 point_args: dict={"color": "r", "s": 10}, 
+                 ax: plt.Axes=None) -> None:
         if ax is None:
             my_ax = plt.subplot()
         else:

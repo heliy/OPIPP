@@ -49,7 +49,7 @@ class Pattern:
         if self.density is None:
             return "Unknown"
         else:
-            return "%.7f (cells/μm^2)"%(self.density)
+            return "%.7f (cells/unit^2)"%(self.density)
 
     ########################################
     #
@@ -342,7 +342,7 @@ class Pattern:
     def simulate(self, mosaic: Mosaic, interaction_func: Callable=None, 
                  features: list=None, schedule: AdaptiveSchedule=AdaptiveSchedule(), 
                  max_step: int=None, update_ratio: float=None,
-                 save_prefix: str=None, save_step: int=1, verbose: bool=True) -> Tuple[Mosaic, list]:
+                 save_prefix: str=None, save_step: int=1000, verbose: bool=True) -> Tuple[Mosaic, list]:
         if interaction_func is None:
             interaction_func = lambda x: 1.0 # accept all
         useable_features = self.get_useable_features()

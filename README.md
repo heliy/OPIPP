@@ -9,9 +9,9 @@ A Python implementation of **OPIPP**, a method for precisely generating artifica
 We recommend the "import-analysis-simulation" pipeline for generating artificial mosaics and purpose a tutorial for each step, as
 1. [Importing retinal spatial pattern datasets from local files](tutorial/1.import.md)
 2. [Analyzing and visualizing spatial patterns of mosaics](tutorial/2.analysis.md)
-3. [Simulating artifial retinal mosaics](tutorial/3.simulation.md)
+3. [Simulating artifical retinal mosaics](tutorial/3.simulation.md)
 
-Users are welcome to [extend and customize methods](tutorial/4.extension.md) for feature calculation and mosaic simulation.
+Users are welcome to [extend and customize methods](tutorial/3.simulation.md#extention) for feature calculation and mosaic simulation.
 
 ## Tools
 

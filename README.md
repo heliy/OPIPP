@@ -1,6 +1,6 @@
 # OPIPP: Optimization-based Pairwise Interaction Point Process
 
-A Python implementation of **OPIPP**, a method for precisely generating artifical **retinal mosaics**, the spatial organization of retinal neurons. [Here](tutorial/0.background.md) is a short introduction of the background.
+A Python implementation of **OPIPP**, a method for precisely generating artificial **retinal mosaics**, the spatial organization of retinal neurons. [Here](tutorial/0.background.md) is a short introduction to the background.
 
 ## Pipeline
 
@@ -52,6 +52,3 @@ pip install OPIPP
 - The example mosaic for retinal horizontal cells and related spatial features are from [(Keeley et al., 2020)](https://doi.org/10.1002/cne.24880).
 
 - In the optimization, we use the adaptive simulated annealing algorithm from [(Ingber, 1993)](https://optimization-online.org/wp-content/uploads/2001/03/291.pdf).
-
-
-

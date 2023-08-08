@@ -16,7 +16,7 @@ In this part, we introduce how to use `R` and `OPIPP` to get the parameters of t
 
 # Installation
 
-The estimation requires the [spatstat](https://spatstat.org/) libaray in [R](https://www.r-project.org/) environment. For installing `R`, you can get the download and related instructions from [here](https://cran.r-project.org/). After installation of the environment, please open `R`, the `RGui` or `Rterm`, usually both are already installed. You can find a console and please type the following line to install the `spatstat` package,
+The estimation requires the [spatstat](https://spatstat.org/) libaray in [R](https://www.r-project.org/) environment. For installing `R`, you can get the download and related instructions from [here](https://cran.r-project.org/). After installation of the environment, please open `R`, the `RGui` or `Rterm`, usually both are already installed. You can find a console and then type the following line to install the `spatstat` package,
 
 ```R
 install.packages('spatstat')
@@ -52,7 +52,7 @@ y <- scan("examples/natural/HC/F8-1-points-y.txt") # y axis of points
 r <- linspace(2, 50, 17) # similar to numpy.linsapce
 # r is an arithmetic sequence from 2 to 50 and the step is 3
 # It means the estimate will yield a list of probabilities corresponding to distances from 2 to 50.
-# It is best to modify these values depending on the value range of distances in a given mosaic.
+# Please modify these values depending on the value range of distances in a given mosaic.
 
 # define a Poisson point process
 u <- ppp(x, y, c(0, 300), c(0, 300)) 
@@ -86,7 +86,7 @@ $δ$ is the minimum distance among cells in a mosaic or a series of mosaics from
 min_distance = natural_mosaic.get_distances().min()
 ```
 
-To get parameters of the interaction function, you need load estimation results by `R` and then give these data and the value of delta to the `estimate_interaction` method. The return is three parameters of the function, as
+To get parameters of the interaction function, you need load estimation results by `R` and then deliver these data and the value of delta to the `estimate_interaction` method. The return is three parameters of the function, as
 
 ```python
 import numpy as np

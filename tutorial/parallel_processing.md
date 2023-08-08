@@ -54,7 +54,7 @@ np.random.seed(seed=rank*seed)
 
 # Simulation
 
-The last step is simulating and saving the generated mosaic into local files with the rank so that you can output files that are not overlapped by each other.
+The last step is simulating and saving the generated mosaic into local files so that output files that are not overlapped by each other.
 
 ```python
 # use the O-PIPP method to generate new mosaics

@@ -90,6 +90,9 @@ class Distribution:
         probs = hist/hist.sum()
         kl = np.sum([pk * np.log(pk / qk) for pk, qk in zip(probs, self.target_probs) if qk > 0 and pk > 0])
         return kl
+    
+    def entropy(self, values: np.ndarray) -> float:
+        return self.KL(values=values)
 
     def sample_values(self, n: int=1) -> np.ndarray:
         centers = np.random.choice(self.get_value_centers(), p=self.target_probs, size=n)

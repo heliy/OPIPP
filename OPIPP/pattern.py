@@ -172,12 +172,12 @@ class Pattern:
     def __get_feature_values(self, mosaics: list, feature_label: str) -> np.ndarray:
         return self.distributions[feature_label].extract_mosaics(mosaics)
     
-    def __get_kl(self, mosaics: list, feature_label: str) -> float:
+    def __get_entropy(self, mosaics: list, feature_label: str) -> float:
         values = self.__get_feature_values(mosaics, feature_label)
-        return self.distributions[feature_label].KL(values)
+        return self.distributions[feature_label].entropy(values)
     
     def evaluate(self, mosaics: list, features: list) -> float:
-        return sum(list(self.__get_kl(mosaics, feature_label=f) for f in features))
+        return sum(list(self.__get_entropy(mosaics, feature_label=f) for f in features))
 
     ########################################
     #
@@ -224,7 +224,7 @@ class Pattern:
         ys = []
         if draw_natural and len(self.natural_mosaics) > 0:
             if feature_label is None:
-                values = list(self.__get_kl([m], feature_label) for m in self.natural_mosaics)
+                values = list(self.__get_entropy([m], feature_label) for m in self.natural_mosaics)
             else:
                 values = self.__get_feature_values(self.natural_mosaics, feature_label)
             x_labels.append("natural")
@@ -233,7 +233,7 @@ class Pattern:
             if tag not in self.simulated_mosaics:
                 continue
             if feature_label is None:
-                values = list(self.__get_kl([m], feature_label) for m in self.simulated_mosaics[tag])
+                values = list(self.__get_entropy([m], feature_label) for m in self.simulated_mosaics[tag])
             else:
                 values = self.__get_feature_values(self.simulated_mosaics[tag], feature_label)
             x_labels.append("Simulated: %s"%tag)
@@ -244,7 +244,7 @@ class Pattern:
             my_ax = ax
         my_ax.boxplot(ys, vert=True, patch_artist=True, labels=x_labels, **box_args)
         if feature_label is None:
-            my_ax.set_title("KL divergency of features: %s"%feature_label)
+            my_ax.set_title("Entropy of features: %s"%feature_label)
         else:
             my_ax.set_title("Values of features: %s"%feature_label)
         if ax is None:
@@ -270,7 +270,7 @@ class Pattern:
             ys.append([])
             if draw_natural and len(self.natural_mosaics) > 0:
                 if draw_loss:
-                    values = list(self.__get_kl([m], feature_label) for m in self.natural_mosaics)
+                    values = list(self.__get_entropy([m], feature_label) for m in self.natural_mosaics)
                 else:
                     values = self.__get_feature_values(self.natural_mosaics, feature_label)
                 ys[i_feature].append(value_method(values))
@@ -282,7 +282,7 @@ class Pattern:
                 if i_feature == 0:
                     x_labels.append("Simulated: %s"%tag)
                 if draw_loss:
-                    values = list(self.__get_kl([m], feature_label) for m in self.simulated_mosaics[tag])
+                    values = list(self.__get_entropy([m], feature_label) for m in self.simulated_mosaics[tag])
                 else:
                     values = self.__get_feature_values(self.simulated_mosaics[tag], feature_label)
                 ys[i_feature].append(value_method(values))
@@ -299,7 +299,7 @@ class Pattern:
         my_ax.set_xticks(range(len(x_labels)))
         my_ax.set_xticklabels(x_labels)
         if draw_loss:
-            my_ax.set_title("KL divergency of features: %s"%", ".join(features))
+            my_ax.set_title("Entropy of features: %s"%", ".join(features))
         else:
             my_ax.set_title("Values of features: %s"%", ".join(features))
         my_ax.legend()

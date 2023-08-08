@@ -4,13 +4,11 @@ MIN_T = 1e-4
 MAX_UPDATE = None 
 
 class Schedule:
-    def __init__(self, init_t: float, min_t: float, max_update: int=MAX_UPDATE) -> None:
-        self.init_t = init_t
+    def __init__(self, min_t: float, max_update: int=MAX_UPDATE) -> None:
         self.min_t = min_t
         self.max_update = max_update
 
     def init(self) -> None:
-        self.t = self.init_t
         self.i_update = 0
 
     def next(self, loss: float) -> float:
@@ -55,10 +53,12 @@ class AdaptiveSchedule(Schedule):
     """
     def __init__(self, alpha: float=0.95, init_t: float=0.5, min_t: float=MIN_T):
         self.alpha = alpha
-        Schedule.__init__(self, init_t=init_t, min_t=min_t)
+        self.init_t = init_t
+        Schedule.__init__(self, min_t=min_t)
 
     def init(self) -> None:
         self.mean = 0
+        self.t = self.init_t
         Schedule.init(self)
 
     def update(self, loss) -> None:

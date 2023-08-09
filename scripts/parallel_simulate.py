@@ -3,7 +3,7 @@
 # select the pattern
 from examples.HorizontalCell import pattern as HC
 from examples.HorizontalCell import scope, h_func
-features = ["nn", "vd"]
+features = ["NN", "VD"]
 # set output files
 save_prefix = "examples/simulated/HC/W1"
 # chose a random seed

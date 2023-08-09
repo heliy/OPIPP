@@ -203,7 +203,7 @@ if __name__ == "__main__":
     mosaic = pattern.new_mosaic(scope=scope)
     mosaic, losses = pattern.simulate(mosaic=mosaic, interaction_func=h_func, 
                                       features=None, schedule=AdaptiveSchedule(), 
-                                      max_step=None, update_ratop=None, 
+                                      max_step=None, update_ratio=None, 
                                       save_prefix="examples/simulated/HC/Sample", 
                                       save_step=500, verbose=True)
     mosaic.draw_points()

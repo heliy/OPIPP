@@ -22,7 +22,7 @@ The estimation requires the [spatstat](https://spatstat.org/) libaray in [R](htt
 install.packages('spatstat')
 ```
 
-We recommend learning the basic of the `R` language for further usage. In this part, we suppose you know the basic of a retinal mosaic and the usage of the `OPIPP` module. Furthermore, you need to modify R scripts for your simulations.
+Here, we suppose you know the basic of a retinal mosaic and the usage of the `OPIPP` module. Furthermore, you need to modify R scripts for your applications. Therefore, We recommend learning the basic of the `R` language for further usage. 
 
 # Save points into local files
 

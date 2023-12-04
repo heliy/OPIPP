@@ -14,6 +14,32 @@ SIMULATED_TAG = "default"
 
 class Pattern:
     """
+    Spatial pattern and related mosaics of a cell type.
+    
+    Attributes
+    ----------
+    name: str, the name of the cell type (spatial pattern)
+    density: float, density of cells (number/mm^2)
+    natural_mosaics: List[Mosaic], natural mosaics
+    simulated_mosaics: Dict[str, Mosaic], simulated mosaics orgnaized by tags
+    distributions: 
+    
+    Methods
+    ----------
+    add_natural_mosaic()
+    get_natural_mosaic()
+    add_simulated_mosaic()
+    get_simulated_mosaic()
+    remove_mosaics()
+    load_from_files()
+    dump_to_files()
+    set_density()
+    estimate_density()
+    set_feature()
+    estimate_feature()
+    set_feature_target()
+    get_usable_features()
+     
     """
 
     def __init__(self, name: str):

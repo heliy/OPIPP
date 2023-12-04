@@ -17,15 +17,42 @@ class Mosaic(nx.Graph):
     """ 
     A mosaic with given locations.
         
-    Parameters
+    Attributes
     ----------
     points: np.ndarray or list
         locations of cells.
 
     scope: Scope
         the area of the mosaic.
+        
+    Methods
+    ----------
+    get_points_n()
+    save()
+    get_effective_filter()
+    iter_effective_indices()
+    get_effective_indices()
+    get_boundary_indices()
+    get_random_indices()
+    get_vorareas()
+    VDRI()
+    find_neighbors()
+    find_nearest_neighbor()
+    get_nn_graph()
+    get_nns()
+    NNRI()
+    get_distances()
+    draw_points()
+    draw_neighbors()
+    draw_nn_graph()
+    draw_vds()
     """
     def __init__(self, points: np.ndarray, scope: Scope, **attr):
+        """
+        Args:
+            points (np.ndarray): locations of cells.
+            scope (Scope): the area.
+        """        
         super().__init__(**attr)
         self.points = np.array(points)
         assert len(self.points.shape) == 2
@@ -66,9 +93,16 @@ class Mosaic(nx.Graph):
             return self.edges[v, u]["length"]
         
     def get_points_n(self) -> int:
+        """get the number of cells."""
         return self.points.shape[0]
 
     def save(self, fname: str, separate: bool=False) -> None:
+        """save into local files.
+
+        Args:
+            fname (str): name of the local file.
+            separate (bool, optional): True for save to two files seperated by axis. Defaults to False.
+        """
         if separate:
             cons = fname.split(".")
             pre_name = ".".join(cons[:-1])
@@ -95,24 +129,27 @@ class Mosaic(nx.Graph):
         self.effective_filter = np.array(fs)
 
     def get_effective_filter(self) -> np.ndarray:
+        """Gets the effective filter"""        
         return self.effective_filter
     
-    def iter_effective_indices(self) -> Generator[int, None, None]:
+    def iter_effective_indices(self) -> Generator[int]:
+        """Iters the index of effective points"""
         for p_index, is_effective in enumerate(self.get_effective_filter()):
             if is_effective:
                 yield p_index
 
-    def get_boundary_indices(self) -> np.ndarray:
-        """ Gets indices of boundary points """
-        in_surrounds = np.arange(self.points.shape[0])[(1-self.get_effective_filter()).astype(bool)]
-        return in_surrounds
-    
     def get_effective_indices(self) -> np.ndarray:
         """ Gets indices of effective points """
         effectives = np.arange(self.points.shape[0])[self.get_effective_filter()]
         return effectives
     
+    def get_boundary_indices(self) -> np.ndarray:
+        """ Gets indices of boundary points """
+        in_surrounds = np.arange(self.points.shape[0])[(1-self.get_effective_filter()).astype(bool)]
+        return in_surrounds
+    
     def get_random_indices(self, n: int=1) -> np.ndarray:
+        """ Gets indices of n random points """
         return np.random.choice(self.get_points_n(), size=min(n, self.get_points_n()), 
                                 replace=False)
     
@@ -137,17 +174,16 @@ class Mosaic(nx.Graph):
         return values
 
     def get_vorareas(self, indices: np.ndarray=None, effective_filter: bool=True) -> np.ndarray:
-        """ 
-        get values of voronoi areas
-        
-        Parameters
-        ----------
-        indices: dict or list, optional(default=None)
-            The indices of cells to query. Without specification, it will return values of all cells.
+        """ Gets values of voronoi areas
 
-        effective_filter: bool, optional(default=True)
-            If True, it will exclude boundary cells.
-        """
+        Args:
+            indices (np.ndarray, optional): The indices of cells to query. 
+               Without specification, it will return values of all cells. Defaults to None.
+            effective_filter (bool, optional): If True, it will exclude boundary cells. Defaults to True.
+
+        Returns:
+            np.ndarray: VD areas.
+        """        
         def vorarea_func(index):
             region = self.extended_vor.regions[self.extended_vor.point_region[index]]
             region = self.extended_vor.vertices[region]
@@ -156,10 +192,20 @@ class Mosaic(nx.Graph):
         return self.__get_features(feauture_func=vorarea_func, indices=indices, effective_filter=effective_filter)
     
     def VDRI(self) -> float:
+        """the VDRI of the mosaic"""
         values = self.get_vorareas(indices=None, effective_filter=True)
         return np.mean(values)/np.std(values)        
 
     def find_neighbors(self, p_index: int, effective_only=False) -> list:
+        """get neighbors of a given point
+
+        Args:
+            p_index (int): the index of the point
+            effective_only (bool, optional): Only return neighbors that are effective if it is True. Defaults to False.
+
+        Returns:
+            list: the list of indices of neighbors
+        """        
         neighbors = list(self.neighbors(p_index))
         if effective_only:
             return list(set(neighbors).difference(set(self.pnet.get_boundary_indices())))
@@ -190,16 +236,15 @@ class Mosaic(nx.Graph):
         return graph
 
     def get_nns(self, indices: np.ndarray=None, effective_filter: bool=True) -> np.ndarray:
-        """ 
-        get values of nearest neighbor distances
-        
-        Parameters
-        ----------
-        indices: dict or list, optional(default=None)
-            The indices of cells to query. Without specification, it will return values of all cells.
+        """ Gets values of NN distances
 
-        effective_filter: bool, optional(default=True)
-            If True, it will exclude boundary cells.
+        Args:
+            indices (np.ndarray, optional): The indices of cells to query. 
+               Without specification, it will return values of all cells. Defaults to None.
+            effective_filter (bool, optional): If True, it will exclude boundary cells. Defaults to True.
+
+        Returns:
+            np.ndarray: NN distances.
         """
         def nn_func(index):
             _, nn_distance = self.find_nearest_neighbor(index)
@@ -207,6 +252,7 @@ class Mosaic(nx.Graph):
         return self.__get_features(feauture_func=nn_func, indices=indices, effective_filter=effective_filter)
     
     def NNRI(self) -> float:
+        """Gets the NNRI of the mosaic"""
         values = self.get_nns(indices=None, effective_filter=True)
         return np.mean(values)/np.std(values)        
 
@@ -228,6 +274,16 @@ class Mosaic(nx.Graph):
     def draw_points(self, highlights: list=None, nonhighlight_alpha: float=0.3, 
                     ax_grid: int=1, draw_plane_grid: bool=False, ax_scaled: bool=True,
                     point_args: dict={"color": "r", "s": 5}, ax: plt.Axes=None) -> None:
+        """
+        Args:
+            highlights (list, optional): the list of cell indices to highlight. None for effective cells. Defaults to None.
+            nonhighlight_alpha (float, optional): the alpha of nonhighlight cells. Defaults to 0.3.
+            ax_grid (int, optional): the number of grid in the plane. Defaults to 1.
+            draw_plane_grid (bool, optional): If draw grids of the plane. Defaults to False.
+            ax_scaled (bool, optional): Tune the length of x/y sides. Defaults to True.
+            point_args (_type_, optional): args delivered into matplotlib.scatter to customize attributes of points. Defaults to {"color": "r", "s": 5}.
+            ax (plt.Axes, optional): Alternative axes for drawing. Defaults to None.
+        """        
         if ax is None:
             my_ax = plt.subplot()
         else:
@@ -253,6 +309,17 @@ class Mosaic(nx.Graph):
                     point_args: dict={"s": 5, "color": "r"}, 
                     edge_args: dict={"lw": 0.5, "color": "gray"}, 
                     ax: plt.Axes=None) -> None:
+        """
+        Args:
+            highlights (list, optional): the list of cell indices to highlight. None for effective cells. Defaults to None.
+            nonhighlight_alpha (float, optional): the alpha of nonhighlight cells. Defaults to 0.3.
+            ax_grid (int, optional): the number of grid in the plane. Defaults to 1.
+            draw_plane_grid (bool, optional): If draw grids of the plane. Defaults to False.
+            ax_scaled (bool, optional): Tune the length of x/y sides. Defaults to True.
+            point_args (_type_, optional): args delivered into matplotlib.scatter to customize attributes of points. Defaults to {"s": 5, "color": "r"}.
+            edge_args (_type_, optional): args delivered into matplotlib.plot to customize attributes of edges. Defaults to {"lw": 0.5, "color": "gray"}.
+            ax (plt.Axes, optional): Alternative axes for drawing. Defaults to None.
+        """        
         if ax is None:
             my_ax = plt.subplot()
         else:
@@ -281,6 +348,17 @@ class Mosaic(nx.Graph):
                       point_args: dict={"s": 5, "color": "r"}, 
                       network_args: dict={"edge_color": "k", "with_labels": False}, 
                       ax: plt.Axes=None) -> None:
+        """
+        Args:
+            highlights (list, optional): the list of cell indices to highlight. None for effective cells. Defaults to None.
+            nonhighlight_alpha (float, optional): the alpha of nonhighlight cells. Defaults to 0.3.
+            ax_grid (int, optional): the number of grid in the plane. Defaults to 1.
+            draw_plane_grid (bool, optional): If draw grids of the plane. Defaults to False.
+            ax_scaled (bool, optional): Tune the length of x/y sides. Defaults to True.
+            point_args (_type_, optional): args delivered into matplotlib.scatter to customize attributes of points. Defaults to {"s": 5, "color": "r"}.
+            network_args (_type_, optional): args delivered into networkx.draw_networkx to customize attributes of network. Defaults to {"edge_color": "k", "with_labels": False}.
+            ax (plt.Axes, optional): Alternative axes for drawing. Defaults to None.
+        """        
         if ax is None:
             my_ax = plt.subplot()
         else:
@@ -312,6 +390,17 @@ class Mosaic(nx.Graph):
                  voronoi_args: dict={"show_points": False, "line_width": 0.5},
                  point_args: dict={"color": "r", "s": 10}, 
                  ax: plt.Axes=None) -> None:
+        """
+        Args:
+            highlights (list, optional): the list of cell indices to highlight. None for effective cells. Defaults to None.
+            nonhighlight_alpha (float, optional): the alpha of nonhighlight cells. Defaults to 0.3.
+            ax_grid (int, optional): the number of grid in the plane. Defaults to 1.
+            ax_scaled (bool, optional): Tune the length of x/y sides. Defaults to True.
+            plane_args (_type_, optional): args delivered into matplotlib.PatchCollection to customize attributes of the plane. Defaults to {"facecolor": "gray", "alpha": 0.3}.
+            voronoi_args (_type_, optional): args delivered into scipy.spatial.voronoi_plot_2d to customize attributes of VD areas. Defaults to {"show_points": False, "line_width": 0.5}.
+            point_args (_type_, optional): args delivered into matplotlib.scatter to customize attributes of points. Defaults to {"color": "r", "s": 10}.
+            ax (plt.Axes, optional): Alternative axes for drawing. Defaults to None.
+        """        
         if ax is None:
             my_ax = plt.subplot()
         else:

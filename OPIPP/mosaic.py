@@ -1,4 +1,4 @@
-from typing import Generator, Callable
+from typing import Iterator, Callable
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -132,7 +132,7 @@ class Mosaic(nx.Graph):
         """Gets the effective filter"""        
         return self.effective_filter
     
-    def iter_effective_indices(self) -> Generator[int]:
+    def iter_effective_indices(self) -> Iterator[int]:
         """Iters the index of effective points"""
         for p_index, is_effective in enumerate(self.get_effective_filter()):
             if is_effective:

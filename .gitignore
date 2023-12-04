@@ -1,5 +1,8 @@
 tests/
 
+build/
+*.egg-info/
+
 *~
 
 *.py[cod]

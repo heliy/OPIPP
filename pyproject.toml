@@ -34,7 +34,8 @@ dependencies = [ # Optional
 "Source" = "https://github.com/heliy/OPIPP/"
 
 [tool.setuptools]
-package-data = {"sample" = ["*.points", "*.losses", "*.txt", "*.png"]}
+package-data = {"sample" = ["*.points", "*.losses", "*.txt", "*.png", "*.md"]}
+packages = ["OPIPP"]
 
 [build-system]
 requires = ["setuptools>=43.0.0", "wheel"]

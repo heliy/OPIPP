@@ -6,7 +6,7 @@ A Python implementation of OPIPP, a method for retinal mosaic simulation.
 Classes:
 
     Scope
-    Distribution
+    Feature
     AdaptiveSchedule
     Mosaic
     Pattern
@@ -14,9 +14,9 @@ Classes:
 """
 
 from .scope import Scope
-from .distribution import Distribution
+from .feature import Feature
 from .cooling import AdaptiveSchedule
 from .mosaic import Mosaic
 from .pattern import Pattern
 
-__all__ = ["Scope", "Distribution", "Mosaic", "Pattern", "AdaptiveSchedule"] 
+__all__ = ["Scope", "Feature", "Mosaic", "Pattern", "AdaptiveSchedule"] 

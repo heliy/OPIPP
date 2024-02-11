@@ -4,9 +4,9 @@ import matplotlib.pyplot as plt
 from typing import Callable, Union, List
 from .mosaic import Mosaic
 
-class Distribution:
+class Feature:
     """ 
-    Probability distribution of feature values
+    spatial feature of a cell type
         
     Attributes
     ----------
@@ -14,10 +14,10 @@ class Distribution:
         The maximum/minimum value for bins in histogram.
 
     n_bin: int
-        The number of bins in histogram.
+        The number of bins in the probability histogram.
         
     targets_prob: np.ndarray(dtype=float)
-        The target histogram of probabilities that describe the distribution for optimization
+        The target probability histogram that describe the distribution of values.
 
     Methods
     -------
@@ -46,15 +46,15 @@ class Distribution:
         Calculate the Regularity Index of values generated randomly.
         
     view()
-        Draw the target distribution.
+        Draw the target probabllity distribution.
     """
     def __init__(self, method: Union[Callable, str], max_value: float, n_bin: int=1, min_value: float=0.):
         """
         Args:
-            method (Union[Callable, str]): the method for extracting features from a Mosaic. If it is a string, the Distribution will call Mosaic.method().
-            max_value (float): The maximum value for bins in histogram.
+            method (Union[Callable, str]): the method for extracting features from a Mosaic. If it is a string, the Feature will call Mosaic.method().
+            max_value (float): The maximum value of feature.
             n_bin (int, optional): The number of bins in histogram. Defaults to 1.
-            min_value (float, optional): The minimum value for bins in histogram.. Defaults to 0.
+            min_value (float, optional): The minimum value of feature. Defaults to 0.
         """        
         if type(method) == str and hasattr(Mosaic, method):
             if callable(getattr(Mosaic, method)):

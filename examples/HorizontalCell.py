@@ -122,17 +122,18 @@ natural_mosaic.VDRI() # 5.790713936276296
 #
 ########################################
 
-# Distribution of NN distances
-nn_distribution = Distribution(method="get_nns", min_value=0, max_value=50, n_bin=20)
+# NN distance Feature
+nn_feature = Feature(method="get_nns", min_value=0, max_value=50, n_bin=20)
+
 # Or a callable method in the definition
-# Distribution of VD areas
-vd_distribution = Distribution(method=lambda mosaic: mosaic.get_vorareas(), 
-                               min_value=0, max_value=4000, n_bin=20)
+# VD area feature
+vd_feature = Feature(method=lambda mosaic: mosaic.get_vorareas(), min_value=0, max_value=4000, n_bin=20)
 
 # Same as `natural_mosaic.get_nns()`
-features = nn_distribution.extract_mosaic(natural_mosaic)
+features = nn_feature.extract_mosaic(natural_mosaic)
+
 # Or extract features from a list of mosaics
-features = nn_distribution.extract_mosaics([natural_mosaic, simulated_mosaic])
+features = nn_feature.extract_mosaics([natural_mosaic, simulated_mosaic])
 
 ########################################
 #
@@ -140,19 +141,19 @@ features = nn_distribution.extract_mosaics([natural_mosaic, simulated_mosaic])
 #
 ########################################
 
-pattern.set_feature("NN", nn_distribution)
-pattern.set_feature("VD", vd_distribution)
+pattern.set_feature("NN", nn_feature)
+pattern.set_feature("VD", vd_feature)
 
 # get values from mosaics
 mosaics = [natural_mosaic]
-values = nn_distribution.extract_mosaics(mosaics)
-# get the histogram
-hist = nn_distribution.get_hist(values)
+values = nn_feature.extract_mosaics(mosaics)
+# get the probabilities
+hist = nn_feature.get_hist(values)
 # set the probabilities for optimization
-nn_distribution.set_target(hist)
+nn_feature.set_target(hist)
 
 # Give the name of the feature, it will estimate 
-# probabilities and put into the distribution object
+# probabilities and put into the corresponding feature object
 probs = pattern.set_feature_target(feature_label="NN")
 
 # data from (Keeley et al., 2020)
@@ -163,19 +164,19 @@ target = np.array([0.        , 0.        , 0.        , 0.0016756 , 0.00670241,
        0]) # n_bin=20 but len(target)=21
        # The last item represents the probability of values
        # larger than the `max_value`. 
-nn_distribution.set_target(target)
-vd_distribution.set_target(np.array([0.        , 0.        , 0.00608906, 0.0617784 , 0.17183275,
+nn_feature.set_target(target)
+nn_feature.set_target(np.array([0.        , 0.        , 0.00608906, 0.0617784 , 0.17183275,
        0.27966751, 0.27633813, 0.13262011, 0.05992875, 0.0117453 ,
        0.        , 0.        , 0.        , 0.        , 0.        ,
        0.        , 0.        , 0.        , 0.        , 0.        , 
        0.        ]))
 
-# The NNRI distribution
-nnri_distribution = Distribution("NNRI", 10)
-pattern.set_feature("NNRI", nnri_distribution)
-# The VDRI distribution
-vdri_distribution = Distribution("VDRI", 10)
-pattern.set_feature("VDRI", vdri_distribution)
+# The NNRI feature
+nnri_feature = Feature("NNRI", 10)
+pattern.set_feature("NNRI", nnri_feature)
+# The VDRI feature
+vdri_feature = Feature("VDRI", 10)
+pattern.set_feature("VDRI", vdri_feature)
 # Do not require target probabilities
 
 ########################################

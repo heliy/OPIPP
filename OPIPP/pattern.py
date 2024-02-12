@@ -432,12 +432,12 @@ class Pattern:
                  save_prefix: str=None, save_step: int=1000, verbose: bool=True) -> Tuple[Mosaic, list]:
         if interaction_func is None:
             interaction_func = lambda x: 1.0 # accept all
+            
         useable_features = self.get_useable_features()
         if features is None:
             features = useable_features
         else:
             features = list(set(features) & set(useable_features))
-            print("Using features: %s"%str(features))
 
         def save(i_step: int, mosaic: Mosaic):
             if save_prefix is None:
@@ -447,23 +447,31 @@ class Pattern:
             np.savetxt("%s_%d.points"%(save_prefix, i_step), mosaic.points)
 
         begin = time()
-        losses = [self.evaluate([mosaic], features=features)]
+        losses = self.evaluate([mosaic], features=features, SUM=False)
         if verbose:
             print()
+            print("Using features: %s"%str(features))
+            print("Initial Loss: %f"%losses[0])
         if schedule is None:
             # Original PIPP
             if max_step is None:
                 max_step = 20
             if update_ratio is None:
                 update_ratio = 1.0  
+            best_points = np.copy(mosaic.points)
+            best_loss = losses[0]
             for i_step in range(max_step):
-                mosaic = self.__routine(mosaic, interaction_func=interaction_func, 
+                new_mosaic = self.__routine(mosaic, interaction_func=interaction_func, 
                                     update_ratio=update_ratio, non_neighbor=False)
-                loss = self.evaluate([mosaic], features=features)
+                loss = self.evaluate([new_mosaic], features=features)
+                if loss < best_loss:
+                    best_loss = loss
+                    best_points = np.copy(new_mosaic.points)
                 if verbose:
                     print("Step #%d: loss = %f"%(i_step, loss))
                 losses.append(loss)
-                save(i_step, mosaic=mosaic)
+                save(i_step, mosaic=new_mosaic)
+            mosaic = Mosaic(points=best_points, scope=mosaic.scope)
         else:
             # Optimization-based PIPP
             if update_ratio is None:
@@ -506,6 +514,7 @@ class Pattern:
                 save(i_step, mosaic=mosaic)
                 i_step += 1
             mosaic = Mosaic(points=best_points, scope=mosaic.scope)
+
         if verbose:
             end = time()
             print("Simulation End, use %f seconds, Final Loss: %f"%(end-begin, best_loss))
@@ -518,6 +527,7 @@ class Pattern:
         relocateds = []
         banned = set()
         N = mosaic.get_points_n()
+        new_mosaic = Mosaic(points=np.copy(mosaic.points), scope=mosaic.scope)
         cell_mask = np.ones(N).astype(bool)
         for i_cell in np.random.choice(N, N, replace=False):
             if non_neighbor and i_cell in banned:
@@ -525,26 +535,26 @@ class Pattern:
             if np.random.rand() >= update_ratio:
                 continue
             if non_neighbor:
-                banned.update(mosaic.find_neighbors(i_cell))
+                banned.update(new_mosaic.find_neighbors(i_cell))
 
             cell_mask[:] = True
             cell_mask[i_cell] = False
-            others = mosaic.points[cell_mask]
+            others = new_mosaic.points[cell_mask]
             relocate_loc = None
             while relocate_loc is None:
-                new_loc = mosaic.scope.get_random_loc(1)[0]
+                new_loc = new_mosaic.scope.get_random_loc(1)[0]
                 distances2others = get_distances(new_loc, pointsArray=others)
                 prob = np.prod(interaction_func(distances2others))
                 if np.random.rand() < prob:
                     relocate_loc = new_loc
 
-            points = mosaic.points
+            points = new_mosaic.points
             points[i_cell] = relocate_loc
-            mosaic = Mosaic(points=points, scope=mosaic.scope)
+            new_mosaic = Mosaic(points=points, scope=new_mosaic.scope)
             relocateds.append(i_cell)
             if non_neighbor:
-                banned.update(mosaic.find_neighbors(i_cell))
-        return mosaic
+                banned.update(new_mosaic.find_neighbors(i_cell))
+        return new_mosaic
 
 
 

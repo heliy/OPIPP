@@ -383,6 +383,42 @@ class Pattern:
                 raise Exception("")
             self.set_density(self.estimate_density())
         return int(self.density*scope.get_area())
+    
+    def new_mosaic_dmin(self, scope: Scope, dmin_mean: float, dmin_std:float, 
+                    n: int=None, max_try: int=5000, FILLRANDOM: bool=False) -> Mosaic:
+        if n is None or n <= 0:
+            n = self.get_points_n(scope)
+        points = []
+        i_point = 0
+        while i_point < n:
+            pointsArray = np.array(points)
+            if i_point > 0:
+                fine = False
+                i_try = 0
+                while not fine:
+                    i_try += 1
+                    if i_try > max_try:
+                        break
+                    loc = scope.get_random_loc(1)[0]
+                    distances = np.sqrt((pointsArray[:, 0]-loc[0])**2+
+                                        (pointsArray[:, 1]-loc[1])**2)
+                    dis = np.random.normal(loc=dmin_mean, scale=dmin_std)
+                    if dis < distances.min():
+                        # safe~
+                        points.append(loc)
+                        fine = True
+            else:
+                points.append(scope.get_random_loc(1)[0])
+            i_point += 1
+        if len(points) == n:
+            return Mosaic(points=points, scope=scope)  
+        else:
+            if FILLRANDOM:
+                points.extend(scope.get_random_loc(n-len(points)).tolist())
+                return Mosaic(points=points, scope=scope)
+            elif len(points) > 3:
+                return Mosaic(points=points, scope=scope)
+        return None
 
     def new_mosaic(self, scope: Scope, n: int=None) -> Mosaic:
         if n is None or n <= 0:
@@ -472,7 +508,7 @@ class Pattern:
             mosaic = Mosaic(points=best_points, scope=mosaic.scope)
         if verbose:
             end = time()
-            print("Simulation End, use %f seconds"%(end-begin))
+            print("Simulation End, use %f seconds, Final Loss: %f"%(end-begin, best_loss))
         if save_prefix is not None:
             np.savetxt("%s.losses"%save_prefix, losses)
         return mosaic, losses

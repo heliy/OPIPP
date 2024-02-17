@@ -100,7 +100,7 @@ class Pattern:
             self.simulated_mosaics[tag] = []
             
     def get_simulated_tags(self, INCLUDEDEFAULT: bool=False) -> List[str]:
-        tags = self.simulated_mosaics.keys()
+        tags = list(self.simulated_mosaics.keys())
         if not INCLUDEDEFAULT:
             tags.remove(SIMULATED_TAG)
         return tags
@@ -161,7 +161,7 @@ class Pattern:
         else:
             mosaics = self.simulated_mosaics[simulated_tag]
         for i, mosaic in enumerate(mosaics):
-            fname = "%s-%d.%s"%(prefix, i, ext)
+            fname = "%s_%d.%s"%(prefix, i, ext)
             mosaic.save(fname, separate=separate)
 
     ########################################
@@ -461,7 +461,7 @@ class Pattern:
             best_points = np.copy(mosaic.points)
             best_loss = losses[0]
             for i_step in range(max_step):
-                new_mosaic = self.__routine(mosaic, interaction_func=interaction_func, 
+                new_mosaic, _ = self.__routine(mosaic, interaction_func=interaction_func, 
                                     update_ratio=update_ratio, non_neighbor=False)
                 loss = self.evaluate([new_mosaic], features=features)
                 if loss < best_loss:
@@ -488,7 +488,7 @@ class Pattern:
                     # loss is small enough
                     break
                 bak_points = np.copy(mosaic.points)
-                new_mosaic = self.__routine(mosaic, interaction_func=interaction_func, 
+                new_mosaic, n_relocated = self.__routine(mosaic, interaction_func=interaction_func, 
                                     update_ratio=update_ratio, non_neighbor=True)
                 loss = self.evaluate([new_mosaic], features=features)
                 if loss < best_loss:
@@ -502,9 +502,9 @@ class Pattern:
                         is_update = False
                 if verbose:
                     if loss > current_loss:
-                        print("Step #%d: loss=%f, t=%f, delta=%f, accept_p=%f, is_update=%s"%(i_step, loss, accept_t, (loss-current_loss), accept_p, str(is_update)))
+                        print("Step #%d: update %d cells, loss=%f, t=%f, delta=%f, accept_p=%f, is_update=%s"%(i_step, n_relocated, loss, accept_t, (loss-current_loss), accept_p, str(is_update)))
                     else:
-                        print("Step #%d: loss=%f, t=%f, delta=%f, is_update=%s"%(i_step, loss, accept_t, (loss-current_loss), str(is_update)))
+                        print("Step #%d: update %d cells, loss=%f, t=%f, delta=%f, is_update=%s"%(i_step, n_relocated, loss, accept_t, (loss-current_loss), str(is_update)))
                 if is_update:
                     current_loss = loss
                     mosaic = new_mosaic
@@ -523,7 +523,7 @@ class Pattern:
         return mosaic, losses
         
     def __routine(self, mosaic: Mosaic, interaction_func: Callable, 
-                  update_ratio: float=1.0, non_neighbor: bool=False) -> Mosaic:
+                  update_ratio: float=1.0, non_neighbor: bool=False) -> Tuple[Mosaic, int]:
         relocateds = []
         banned = set()
         N = mosaic.get_points_n()
@@ -554,7 +554,7 @@ class Pattern:
             relocateds.append(i_cell)
             if non_neighbor:
                 banned.update(new_mosaic.find_neighbors(i_cell))
-        return new_mosaic
+        return new_mosaic, len(relocateds)
 
 
 

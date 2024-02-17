@@ -47,7 +47,7 @@ class Mosaic(nx.Graph):
     draw_nn_graph()
     draw_vds()
     """
-    def __init__(self, points: np.ndarray, scope: Scope, **attr):
+    def __init__(self, points: np.ndarray, scope: Scope=None, **attr):
         """
         Args:
             points (np.ndarray): locations of cells.
@@ -56,9 +56,16 @@ class Mosaic(nx.Graph):
         super().__init__(**attr)
         self.points = np.array(points)
         assert len(self.points.shape) == 2
+        if scope is None:
+            min_x, min_y = points.min(axis=0)
+            max_x, max_y = points.max(axis=0)
+            scope = Scope(min_x=int(min_x), max_x=int(max_x)+1, min_y=int(min_y), max_y=int(max_y)+1)
+        self.set_scope(scope)       
+        
+    def set_scope(self, scope: Scope):
+        # update triangulation domains
         self.scope = scope
         self.__set_effective_filter()
-
         # add points mirroring with inner points by edges to ensure the correctness of voronoi domains
         appended_points = []
         effective_filter = self.get_effective_filter()

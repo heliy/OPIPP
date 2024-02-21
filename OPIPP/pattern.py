@@ -86,7 +86,7 @@ class Pattern:
     def add_natural_mosaic(self, mosaic: Mosaic) -> None:
         self.natural_mosaics.append(mosaic)
 
-    def get_natural_mosaic(self, index: int, tag: str=SIMULATED_TAG) -> Mosaic:
+    def get_natural_mosaic(self, index: int) -> Mosaic:
         if index >= len(self.natural_mosaics):
             return None
         return self.natural_mosaics[index]
@@ -122,6 +122,18 @@ class Pattern:
         if tag not in self.simulated_mosaics:
             return None
         return self.simulated_mosaics[tag]
+    
+    def remove_mosaic(self, mosaic: Mosaic, with_natural: bool=False, simulated_tag: str=SIMULATED_TAG) -> None:
+        if with_natural:
+            if mosaic not in self.natural_mosaics:
+                raise Exception("Given mosaic is not in pattern")
+            self.natural_mosaics.remove(mosaic)
+            return
+        if simulated_tag is None:
+            simulated_tag = SIMULATED_TAG
+        if mosaic not in self.simulated_mosaics[simulated_tag]:
+            raise Exception("Given mosaic is not in pattern")
+        self.simulated_mosaics[simulated_tag].remove(mosaic)
 
     def remove_mosaics(self, with_natural: bool=False, simulated_tag: str=SIMULATED_TAG) -> None:
         if with_natural:

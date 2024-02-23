@@ -247,6 +247,8 @@ class Pattern:
 
     def draw_feature_hist(self, feature_label: str, natural_color: str="skyblue", 
                           target_color: str="gray", simulated_color: str="red", simulated_tag: str=SIMULATED_TAG,
+                          natural_label: str="Natural",
+                          target_label: str="Target",
                           bar_args: dict={}, ax: plt.Axes=None) -> None:
         feature = self.features[feature_label]
         centers = feature.get_value_centers()
@@ -261,9 +263,9 @@ class Pattern:
             my_ax = ax
         if natural_color is not None and len(self.natural_mosaics) > 0:
             natural_probs = self.estimate_feature(feature_label, natural=True)
-            my_ax.bar(centers, natural_probs, color=natural_color, label="natural", **bar_args)
+            my_ax.bar(centers, natural_probs, color=natural_color, label=natural_label, **bar_args)
         if target_color is not None and feature.has_target():
-            my_ax.bar(centers, feature.target_probs, color=target_color, label="Target", **bar_args)
+            my_ax.bar(centers, feature.target_probs, color=target_color, label=target_label, **bar_args)
         if simulated_color is not None and len(self.simulated_mosaics[simulated_tag]) > 0:
             simulated_probs = self.estimate_feature(feature_label, natural=False, simulated_tag=simulated_tag)
             my_ax.bar(centers, simulated_probs, color=simulated_color, label="Simulated: %s"%simulated_tag, **bar_args)            

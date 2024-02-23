@@ -86,6 +86,17 @@ class Scope:
     
     def distance2boundary(self, point_x: float, point_y: float) -> float:
         return np.abs([point_x-self.min_x, point_x-self.max_x, point_y-self.min_y, point_y-self.max_y]).min()
+
+    def erode(self, size) -> Scope:
+        if len(np.array([size]).flatten()) == 1:
+            size = [size, size]
+        min_x = self.min_x+size[0]
+        max_x = self.max_x-size[0]
+        min_y = self.min_y+size[1]
+        max_y = self.max_y-size[1]
+        max_x = max(min_x, max_x)
+        max_y = max(min_y, max_y)
+        return Scope(min_x=min_x, max_x=max_x, min_y=min_y, max_y=max_y)
     
     def view(self, edgecolor: str="k", facecolor: str="gray", alpha: float=0.5, ax: plt.Axes=None):
         if ax is None:

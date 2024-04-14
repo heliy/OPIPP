@@ -54,7 +54,7 @@ pip install git+https://github.com/heliy/OPIPP
 
 - The example mosaic for retinal horizontal cells and related spatial features are from [(Keeley et al., 2020)](https://doi.org/10.1002/cne.24880).
 
-- In the optimization, we use the adaptive simulated annealing algorithm from [(Ingber, 1993)](https://optimization-online.org/wp-content/uploads/2001/03/291.pdf).
+- In the optimization, we use the adaptive simulated annealing algorithm from [(Mahdi et al., 2017)](https://doi.org/10.13053/cys-21-3-2553).
 
 # TODO & Changelog
 
@@ -63,7 +63,7 @@ pip install git+https://github.com/heliy/OPIPP
 
 ## v0.1.2
 - [x] Add more operations for mosaics and tags in `Pattern`.
-- [x] Fix bugs in in `Pattern`.
+- [x] Fix bugs in `Pattern`.
 - [x] Estimate scope from the array of given points.
 
 ## v0.1.1

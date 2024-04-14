@@ -1,5 +1,6 @@
-from typing import Callable, Tuple, List
+from typing import Callable, Tuple, List, Union
 from time import time
+from logging import Logger
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -91,8 +92,14 @@ class Pattern:
             return None
         return self.natural_mosaics[index]
     
-    def add_simulated_tag(self, tag: str):
+    def has_simulated_tag(self, tag: str) -> bool:
+        return tag in self.simulated_mosaics
+            
+    def add_simulated_tag(self, tag: str, CLEAR: bool=False):
         if tag in self.simulated_mosaics:
+            if CLEAR:
+                self.simulated_mosaics[tag] = []
+                return
             ensure = input("clear mosaics in tag '%s', sure? [yes/no]"%tag)
             if ensure in ["Y", "y", "Yes", "YES", "yes"]:
                 self.simulated_mosaics[tag] = []
@@ -443,7 +450,7 @@ class Pattern:
     def simulate(self, mosaic: Mosaic, interaction_func: Callable=None, 
                  features: list=None, schedule: AdaptiveSchedule=AdaptiveSchedule(), 
                  max_step: int=None, update_ratio: float=None,
-                 save_prefix: str=None, save_step: int=1000, verbose: bool=True) -> Tuple[Mosaic, list]:
+                 save_prefix: str=None, save_step: int=1000, verbose: bool=True, logger: Union[Logger, str]=None) -> Tuple[Mosaic, list]:
         if interaction_func is None:
             interaction_func = lambda x: 1.0 # accept all
             
@@ -459,13 +466,23 @@ class Pattern:
             if i_step%save_step != 0:
                 return
             np.savetxt("%s_%d.points"%(save_prefix, i_step), mosaic.points)
+            
+        if logger is None:
+            logger_method = print
+        elif isinstance(logger, Logger):
+            logger_method = logger.info
+        elif isinstance(logger, str):
+            def logger_method(message):
+                with open(logger, "a") as f:
+                    logger.write(message+"\n")
+        else:
+            raise Exception("Unknown logging input: "+str(logger))
 
         begin = time()
         losses = self.evaluate([mosaic], features=features, SUM=False)
         if verbose:
-            print()
-            print("Using features: %s"%str(features))
-            print("Initial Loss: %f"%losses[0])
+            info = "\nUsing features: %s\nInitial Loss: %f"%(str(features), losses[0])
+            logger_method(info)
         if schedule is None:
             # Original PIPP
             if max_step is None:
@@ -482,7 +499,8 @@ class Pattern:
                     best_loss = loss
                     best_points = np.copy(new_mosaic.points)
                 if verbose:
-                    print("Step #%d: loss = %f"%(i_step, loss))
+                    info = "Step #%d: loss = %f"%(i_step, loss)
+                    logger_method(info)
                 losses.append(loss)
                 save(i_step, mosaic=new_mosaic)
             mosaic = Mosaic(points=best_points, scope=mosaic.scope)
@@ -516,9 +534,10 @@ class Pattern:
                         is_update = False
                 if verbose:
                     if loss > current_loss:
-                        print("Step #%d: update %d cells, loss=%f, t=%f, delta=%f, accept_p=%f, is_update=%s"%(i_step, n_relocated, loss, accept_t, (loss-current_loss), accept_p, str(is_update)))
+                        info = "Step #%d: update %d cells, loss=%f (mean=%f), t=%f, delta=%f, accept_p=%f, is_update=%s"%(i_step, n_relocated, loss, np.mean(losses), accept_t, (loss-current_loss), accept_p, str(is_update))
                     else:
-                        print("Step #%d: update %d cells, loss=%f, t=%f, delta=%f, is_update=%s"%(i_step, n_relocated, loss, accept_t, (loss-current_loss), str(is_update)))
+                        info = "Step #%d: update %d cells, loss=%f (mean=%f), t=%f, delta=%f, is_update=%s"%(i_step, n_relocated, loss, np.mean(losses), accept_t, (loss-current_loss), str(is_update))
+                    logger_method(info)
                 if is_update:
                     current_loss = loss
                     mosaic = new_mosaic
@@ -531,7 +550,8 @@ class Pattern:
 
         if verbose:
             end = time()
-            print("Simulation End, use %f seconds, Final Loss: %f"%(end-begin, best_loss))
+            info = "Simulation End, use %f seconds, Final Loss: %f"%(end-begin, best_loss)
+            logger_method(info)
         if save_prefix is not None:
             np.savetxt("%s.losses"%save_prefix, losses)
         return mosaic, losses

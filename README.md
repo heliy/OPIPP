@@ -20,20 +20,23 @@ Here are useful tools that are not implemented in the current version. We plan t
 - [Estimate parameters of mosaic simulation by R](tutorial/estimate_inter_ps.md)
 - [Parallel process for mosaic generation by MPI](tutorial/parallel_processing.md)
 
+We also provided [a web application](https://opipp-online.streamlit.app/) for uploading data, playing with the O-PIPP method, and downloading generated mosaics!
 
 # Install
 
-## PyPI (pip)
+
+## PyPI
+
+
+```console
+pip install OPIPP
+```
+
+## pip+git
 
 ```console
 pip install git+https://github.com/heliy/OPIPP
 ```
-
-<!-- or 
-
-```console
-pip install OPIPP
-``` -->
 
 ## Dependencies
 
@@ -52,3 +55,16 @@ pip install OPIPP
 - The example mosaic for retinal horizontal cells and related spatial features are from [(Keeley et al., 2020)](https://doi.org/10.1002/cne.24880).
 
 - In the optimization, we use the adaptive simulated annealing algorithm from [(Ingber, 1993)](https://optimization-online.org/wp-content/uploads/2001/03/291.pdf).
+
+# TODO & Changelog
+
+## v0.2.0
+- [ ] Update documents.
+
+## v0.1.2
+- [x] Add more operations for mosaics and tags in `Pattern`.
+- [x] Fix bugs in in `Pattern`.
+- [x] Estimate scope from the array of given points.
+
+## v0.1.1
+- [x] `Distribution` -> `Feature`.

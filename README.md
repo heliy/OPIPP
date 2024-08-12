@@ -48,7 +48,7 @@ pip install git+https://github.com/heliy/OPIPP
 
 # Citation
 
-- TODO
+- Liuyuan He, Wenyao Wang, Lei Ma, Tiejun Huang; Optimization-Based Pairwise Interaction Point Process (O-PIPP): A Precise and Universal Retinal Mosaic Modeling Approach. Invest. Ophthalmol. Vis. Sci. 2024;65(8):39. https://doi.org/10.1167/iovs.65.8.39.
 
 # References
 
